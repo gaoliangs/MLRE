@@ -148,7 +148,6 @@ eng = matlab.engine.start_matlab()
 
 for treetopo in alltreetopo:
     print('topo:',treetopo)
-    #treetopo ='((((aptHaa,aptOwe),aptRow),droNov_casCas),(rhePen_rheAme,((cryCin,tinGut),(eudEle,notPer))))'
     subprocess.run(["python3", "newlambda.py", treetopo, markerfile])
     print('start_matlab')
 	#eng = matlab.engine.start_matlab()
