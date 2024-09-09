@@ -1,4 +1,4 @@
-# REML(Retrotransposon elements Maximum Likelihood)
+# REML(Retrotransposon Elements Maximum Likelihood)
 
 
 
