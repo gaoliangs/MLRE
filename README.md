@@ -1,4 +1,4 @@
-# REML(Retrotransposon Elements Maximum Likelihood)
+# MLRE(Maximum Likelihood Retrotransposon Elements)
 
 
 
