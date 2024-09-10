@@ -1,4 +1,4 @@
-# MLRE(Maximum Likelihood Retrotransposon Elements)
+# MLRE(Maximum Likelihood REtrotransposon)
 
 
 
