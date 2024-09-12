@@ -134,7 +134,7 @@ def remove_duplicates(trees):
 
 current_directory = os.getcwd()
 input_file_path = os.path.join(current_directory, 'tjtree_newick.txt')
-
+option = input("use parameter c (yes/no): ").lower()
 
 alltreetopo = []
 with open(input_file_path, 'r') as mark:
@@ -148,7 +148,7 @@ eng = matlab.engine.start_matlab()
 
 for treetopo in alltreetopo:
     print('topo:',treetopo)
-    subprocess.run(["python3", "newlambda.py", treetopo, markerfile])
+    subprocess.run(["python3", "newlambda.py", treetopo, markerfile, option])
     print('start_matlab')
 	#eng = matlab.engine.start_matlab()
     F0=eng.treescore(nargout =1)
