@@ -1,6 +1,6 @@
 # MLRE(Maximum Likelihood REtrotransposon)
 
-1. preprocessing.py
+1. preprocessing.py \n
    input file: .nex
    thresthold: 
    output file: newseq1.csv
@@ -9,8 +9,14 @@
    input file: newseq1.csv
    output file: tjtree_newick.txt
 
-3. treevalue.py/NNI.py/SPR.py
+3. treevalue.py
    input file: tjtree_newick.txt
+   input file: newseq1.csv
+   option: parameter c (yes/no)
+   output: treetopo & F-value
+
+4. NNI.py/SPR.py
+   starting tree: tree(newick)
    input file: newseq1.csv
    option: parameter c (yes/no)
    output: treetopo & F-value
