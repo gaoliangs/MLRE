@@ -136,6 +136,7 @@ treetopo =''
 
 besttreetopo = input("starting tree: ")
 markerfile = input("input file name: ")
+option = input("use parameter c (yes/no): ").lower()
 
 
 eng = matlab.engine.start_matlab()
@@ -148,7 +149,7 @@ while treetopo != besttreetopo:
 	print('topo:',treetopo)
 
 
-	subprocess.run(["python3", "newlambda.py", treetopo,markerfile])
+	subprocess.run(["python3", "newlambda.py", treetopo,markerfile,option])
 	#eng = matlab.engine.start_matlab()
 	F0=eng.treescore(nargout =1)
 	#eng.exit()
@@ -188,7 +189,7 @@ while treetopo != besttreetopo:
 			for tt in newtreetopo:
 				print('topo:',tt)
 
-				subprocess.run(["python3", "newlambda.py", tt,markerfile])
+				subprocess.run(["python3", "newlambda.py", tt,markerfile,option])
 				#eng = matlab.engine.start_matlab()
 				F=eng.treescore(nargout =1)
 				#eng.exit()
