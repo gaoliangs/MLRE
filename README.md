@@ -75,8 +75,8 @@ This section explains how to calculate the maximum likelihood value for a given 
    starting tree: tree(newick)  
    input file: newseq1.csv  
    option: parameter c (yes/no)  
-            parameter p (yes/no)     
-   output: treetopo & F-value
+            parameter q (yes/no)     
+   output: treetopo with parameters & F-value
    ```
      
    
