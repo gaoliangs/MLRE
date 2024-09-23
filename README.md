@@ -55,7 +55,7 @@ This section clearly explains the process of running tree searches using both NN
    input file: tjtree_newick.txt  
    input file: newseq1.csv  
    option: parameter c (yes/no)  
-            parameter p (yes/no)    
+            parameter q (yes/no)    
    output: treetopo & F-value
    ```
 
