@@ -24,18 +24,15 @@ This project introduces an advanced algorithm for constructing phylogenetic tree
 
 The input data for the algorithm is in `.nex` format. To preprocess the data, run the `preprocessing.py` script. This will generate a `.csv` file containing a presence/absence matrix for retrotransposons (i.e., a 0-1 matrix).
 
-During execution, the script will display the weights of all Buneman clusters. You can input a threshold based on these weights to filter the clusters. 
+During execution, the script will display the weights of all Buneman clusters. You can input a threshold based on these weights to filter the clusters. All clusters with weights above the threshold will be retained, resulting in a partially unresolved tree. For internal nodes with a degree greater than 3, a CSV file will be generated for each node to facilitate further analysis.
 
 If you do not wish to use Buneman clustering, simply set the threshold to a value larger than the maximum Buneman weight to bypass the clustering step.
-
 
    ```
    input file: .nex  
    thresthold: buneman weight  
-   output file: newseq1.csv  
+   output file: newseq1.csv, newseq2.csv, ...
    ```
-
-
 
 
 
@@ -47,7 +44,7 @@ Alternatively, you can use other software such as ASTRAL to generate the initial
 
 
    ```
-   input file: newseq1.csv  
+   input file: .csv  
    output file: tjtree_newick.txt
    ```
 
@@ -55,18 +52,17 @@ Alternatively, you can use other software such as ASTRAL to generate the initial
 
 #### 3. Tree Search Using NNI or SPR
 
-To perform a tree search, provide an initial tree in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. 
+To perform a tree search, provide an initial tree in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
 
 - **NNI Search**: Run the `NNI.py` script. This will first output the logF value of the initial tree, then perform the NNI (Nearest Neighbor Interchange) search. The script will output the Newick format trees from the NNI search along with their logF values, and finally, it will output the optimal tree and its logF value after NNI search.
   
-- **SPR Search**: Run the `SPR.py` script. This will perform an NNI search first, followed by an SPR (Subtree Pruning and Regrafting) search. You can choose which search method best fits your needs.
-
+- **SPR Search**: Run the `SPR.py` script. This will perform an NNI search first, followed by an SPR (Subtree Pruning and Regrafting) search. You can choose which search method best fits your needs. Due to the wide search space of SPR, Buneman clusters can be used to refine the search: taxa within each Buneman cluster remain unchanged, and only the split between clusters is adjusted. In other words, we perform edge swaps and evaluations only on the non-Buneman-split edges.
 
    ```
    input file: tjtree_newick.txt  
    input file: newseq1.csv  
    option: parameter c (yes/no)  
-            parameter q (yes/no)    
+           parameter q (yes/no)    
    output: treetopo & F-value
    ```
 
@@ -84,14 +80,13 @@ Provide one or more trees in Newick format along with the retrotransposon marker
    starting tree: tree(newick)  
    input file: newseq1.csv  
    option: parameter c (yes/no)  
-            parameter q (yes/no)     
+           parameter q (yes/no)     
    output: treetopo with parameters & F-value
    ```
 
 
 #### 5. Support value
-
-
+This method uses the aBayes approach to calculate the support values for each edge in the tree.
 
 
 
