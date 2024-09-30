@@ -14,13 +14,14 @@ data = []
 file_name = sys.argv[2]
 input_file_path = os.path.join(current_directory, file_name)
 
+
 with open(input_file_path, 'r') as mark:
    line = mark.readlines()
-for i in range(len(line)):
-   line1 = line[i][:-1]
+data.append(line[0][:-1].split(","))
+for i in range(1,len(line)):
+   line1 = line[i][:-1].replace('B','01')
    marker = line1.split(",")
    data.append(marker)
-
 
 
 taxaname= data[0]
@@ -109,13 +110,21 @@ matrix_leaf_group = Matrix([
 
 
 # 内部节点的矩阵
+'''
 matrix_internal = Matrix([
     [1, (-log(t[0])-(1-t[0]))*c[0]/2, (-log(t[0])-(1-t[0]))*c[0]/2,c[0]*(1-t[0])],
     [0, 1, 0, 0],
     [0, 0, 1, 0],
     [0, (1-t[0])/2, (1-t[0])/2, t[0]]
 ])
+'''
 
+matrix_internal = Matrix([
+    [1, (-log(t[0])-(1-t[0]))*c[0]/2, (-log(t[0])-(1-t[0]))*c[0]/2,c[0]*(1-t[0])],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [0, (1-t[0])/2, (1-t[0])/2, t[0]]
+])
 
 
 matrix_leaf = Matrix([
@@ -125,21 +134,7 @@ matrix_leaf = Matrix([
     [0, 1/2, 1/2, 1]
 ])
 
-'''
-matrix_leaf_group = Matrix([
-    [0, 0, 0, 0],
-    [0, 1, 0, 0],
-    [0, 0, 1, 0],
-    [0, (1 - exp(-tl[0]))/ 2, (1 - exp(-tl[0])) / 2, exp(-tl[0])]
-])
 
-matrix_internal = Matrix([
-    [1, (t[0]-(1-exp(-t[0])))*c[0]/2, (t[0]-(1-exp(-t[0])))*c[0]/2,c[0]*(1-exp(-t[0]))],
-    [0, 1, 0, 0],
-    [0, 0, 1, 0],
-    [0, (1-exp(-t[0]))/2, (1-exp(-t[0]))/2, exp(-t[0])]
-])
-'''
 
 def findsplit(s,edge_index,taxa_index):
 	result = []
@@ -237,7 +232,7 @@ def recursive_split(s,edge_num,leaf_index):
 
 sumlambda=1
 for i in range(1,n_leaf-1):
-	sumlambda =sumlambda+c[i]*-log(t[i])
+	sumlambda =sumlambda-c[i]*log(t[i])
 #print(sumlambda)
 
 
@@ -264,7 +259,6 @@ for i,m in enumerate(trivialtopo):
 	file.write('\r\n')
 
 
-
 user_choice = sys.argv[3]
 if user_choice == 'yes':
 	file_name_variables = 'variables.m'
@@ -289,7 +283,8 @@ if user_choice == 'yes':
 	file.write(f'x0 = ones(1,{n_edge*2+len(gm)});\nlb = [zeros(1,{n_edge+len(gm)}),ones(1,{n_edge})*0.001];\nub = [ones(1,{n_edge+len(gm)}),ones(1,{n_edge})*1000];\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], [], [], lb, ub, [], options);\n\n")
-	file.write("F= -fval\n\nend\n\n")
+	file.write(f"disp('Optimal solution t:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal solution c:');\ndisp(x_optimal({1+n_edge+len(gm)}:{n_edge+n_edge+len(gm)}));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
+	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tvariables\n\tlambda_formula\n\tlambda_formula_trivial\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
 	file.write('F = sum(log(l))-length(l)*log(suml);\n\tresult = -F;\nend\n')
@@ -320,10 +315,14 @@ else:
 	file.write(f'x0 = ones(1,{n_edge+len(gm)});\nlb = zeros(1,{n_edge+len(gm)});\nub = ones(1,{n_edge+len(gm)});\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], [], [], lb, ub, [], options);\n\n")
-	file.write("F= -fval\n\nend\n\n")
+	file.write(f"disp('Optimal solution:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
+	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tvariables\n\tlambda_formula\n\tlambda_formula_trivial\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
 	file.write('F = sum(log(l))-length(l)*log(suml);\n\tresult = -F;\nend\n')
 	file.close()
+
+
+
 
 
