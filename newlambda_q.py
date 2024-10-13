@@ -136,7 +136,7 @@ matrix_leaf_group = Matrix([
 
 # 内部节点的矩阵
 matrix_internal = Matrix([
-    [1, (-log(t[0])-(1-t[0]))*c[0]/2, (-log(t[0])-(1-t[0]))*c[0]/2,c[0]*(1-t[0])],
+    [1, (-log(t[0])-(1-t[0]))*exp(c[0])/2, (-log(t[0])-(1-t[0]))*exp(c[0])/2,exp(c[0])*(1-t[0])],
     [0, 1, 0, 0],
     [0, 0, 1, 0],
     [0, (1-t[0])/2, (1-t[0])/2, t[0]]
@@ -299,10 +299,10 @@ if user_choice == 'yes':
 	output_file_path = os.path.join(current_directory, file_name_lambda_formula)
 	file = open(output_file_path, "w+")
 	file.write('function [F] = treescore()\nclear all\n\nobjective = @(x) myObjective(x);\n')
-	file.write(f'x0 = ones(1,{n_edge*2+len(gm)+len(q)-1});\nlb = [zeros(1,{n_edge+len(gm)+len(q)-1}),ones(1,{n_edge})*0.001];\nub = [ones(1,{n_edge+len(gm)+len(q)-1}),ones(1,{n_edge})*1000];\n\n')
+	file.write(f'x0 = ones(1,{n_edge*2+len(gm)+len(q)-1});\nlb = [zeros(1,{n_edge+len(gm)+len(q)-1}),ones(1,{n_edge})*-10];\nub = [ones(1,{n_edge+len(gm)+len(q)-1}),ones(1,{n_edge})*10];\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], [], [], lb, ub, [], options);\n\n")
-	file.write("F= -fval\n\nend\n\n")
+	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tvariables\n\tlambda_formula_q\n\t")
 	file.write('k='+str(kvector)+';\n\t')
 	file.write("F = log(l)*k'-sum(k)*log(sum(l));\n\tresult = -F;\nend\n")
@@ -324,7 +324,7 @@ else:
 		file.write(f'q{qi}=x({qi+len(t)+len(gmloc)-1});')
 		file.write('\r\n')
 	for k in range(1,len(c)):
-		file.write(f'c{k}=1;')
+		file.write(f'c{k}=0;')
 		file.write('\r\n')
 	file.close()
 
@@ -336,7 +336,7 @@ else:
 	file.write(f'x0 = ones(1,{n_edge+len(gm)+len(q)-1});\nlb = zeros(1,{n_edge+len(gm)+len(q)-1});\nub = ones(1,{n_edge+len(gm)+len(q)-1});\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], [], [], lb, ub, [], options);\n\n")
-	file.write("F= -fval\n\nend\n\n")
+	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tvariables\n\tlambda_formula_q\n\t")
 	file.write('k='+str(kvector)+';\n\t')
 	file.write("F = log(l)*k'-sum(k)*log(sum(l));\n\tresult = -F;\nend\n")
