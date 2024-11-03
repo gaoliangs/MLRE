@@ -54,8 +54,8 @@ Alternatively, you can use other software such as ASTRAL to generate the initial
 
 To perform a tree search, provide an initial tree in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
 
-Run the `treesearch.py` script. This will perform an NNI search first, followed by an SPR (Subtree Pruning and Regrafting) search. 
-Due to the wide search space of SPR, user can input a constraint tree to limit the search space. Clusters within the input tree remain fixed, with adjustments made only to other edges. Typically, a Buneman tree can be used for this purpose, while a star tree can be input for a complete search.
+Run the `treesearch.py` script. This will perform a NNI search first, followed by a SPR (Subtree Pruning and Regrafting) search. 
+User can input a constraint tree to limit the search space. Clusters within the input tree remain fixed, with adjustments made only to other edges. Typically, a Buneman tree（`bunemantree.py`） can be used for this purpose, while a star tree can be input for a complete search.
 
    ```
    input file: tjtree/...
