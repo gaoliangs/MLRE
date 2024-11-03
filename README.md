@@ -50,19 +50,19 @@ Alternatively, you can use other software such as ASTRAL to generate the initial
 
 
 
-#### 3. Tree Search Using NNI or SPR
+#### 3. Tree Search Using NNI and SPR
 
 To perform a tree search, provide an initial tree in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
 
-- **NNI Search**: Run the `NNI.py` script. This will first output the logF value of the initial tree, then perform the NNI (Nearest Neighbor Interchange) search. The script will output the Newick format trees from the NNI search along with their logF values, and finally, it will output the optimal tree and its logF value after NNI search.
-  
-- **SPR Search**: Run the `SPR.py` script. This will perform an NNI search first, followed by an SPR (Subtree Pruning and Regrafting) search. You can choose which search method best fits your needs. Due to the wide search space of SPR, Buneman clusters can be used to refine the search: taxa within each Buneman cluster remain unchanged, and only the split between clusters is adjusted. In other words, we perform edge swaps and evaluations only on the non-Buneman-split edges.
+Run the `treesearch.py` script. This will perform an NNI search first, followed by an SPR (Subtree Pruning and Regrafting) search. 
+Due to the wide search space of SPR, user can input a constraint tree to limit the search space. Clusters within the input tree remain fixed, with adjustments made only to other edges. Typically, a Buneman tree can be used for this purpose, while a star tree can be input for a complete search.
 
    ```
-   input file: tjtree_newick.txt  
+   input file: tjtree/...
    input file: newseq1.csv  
    option: parameter c (yes/no)  
-           parameter q (yes/no)    
+           parameter q (yes/no)
+   constraint tree: buneman tree/star tree/...   
    output: treetopo & F-value
    ```
 
