@@ -275,14 +275,14 @@ file.write("#include <mex.h>\n#include <vector>\n\n")
 file.write("void mexFunction(int nlhs, mxArray* plhs[], int nrhs, mxArray const* prhs[])\n{\n\n")
 file.write("\tdouble "+", ".join(variables_t)+';\n')
 if len(gmloc)>0:
-	file.write("\tdouble "+", ".join(variables_tl[0:len(gmloc)])+';\n')
+	file.write("\tdouble "+','.join([f"tl{i}" for i in gmloc])+';\n')
 file.write("\tdouble "+", ".join(variables_c)+';\n')
 file.write(f"\tconst mxArray* ma = prhs[0];\n\tif(mxGetN(ma) * mxGetM(ma) != {2*n_edge+len(gm)})\n")
 file.write('\t\tmexErrMsgTxt("error!\\n");\n\tdouble* x = mxGetDoubles(ma);\n\t')
 t_list = ";".join([f"t{i+1}=x[{i}]" for i in range(n_edge)]) + ";\n\t"
 file.write(t_list)
 if len(gmloc)>0:
-	tl_list = ";".join([f"tl{i+1}=x[{i+n_edge}" for i in range(len(gmloc))]) + ";\n\t"
+	tl_list = ";".join([f"tl{j}=x[{i+n_edge}]" for i,j in enumerate(gmloc)]) + ";\n\t"
 	file.write(tl_list)
 c_list = ";".join([f"c{i+1}=x[{i+n_edge+len(gmloc)}]" for i in range(n_edge)]) + ";\n\t"
 file.write(c_list)
@@ -310,14 +310,14 @@ file.write("#include <mex.h>\n#include <vector>\n\n")
 file.write("void mexFunction(int nlhs, mxArray* plhs[], int nrhs, mxArray const* prhs[])\n{\n\n")
 file.write("\tdouble "+", ".join(variables_t)+';\n')
 if len(gmloc)>0:
-	file.write("\tdouble "+", ".join(variables_tl[0:len(gmloc)])+';\n')
+	file.write("\tdouble "+','.join([f"tl{i}" for i in gmloc])+';\n')
 file.write("\tdouble "+", ".join(variables_c)+';\n')
 file.write(f"\tconst mxArray* ma = prhs[0];\n\tif(mxGetN(ma) * mxGetM(ma) != {2*n_edge+len(gm)})\n")
 file.write('\t\tmexErrMsgTxt("error!\\n");\n\tdouble* x = mxGetDoubles(ma);\n\t')
 t_list = ";".join([f"t{i+1}=x[{i}]" for i in range(n_edge)]) + ";\n\t"
 file.write(t_list)
 if len(gmloc)>0:
-	tl_list = ";".join([f"tl{i+1}=x[{i+n_edge}" for i in range(len(gmloc))]) + ";\n\t"
+	tl_list = ";".join([f"tl{j}=x[{i+n_edge}]" for i,j in enumerate(gmloc)]) + ";\n\t"
 	file.write(tl_list)
 c_list = ";".join([f"c{i+1}=x[{i+n_edge+len(gmloc)}]" for i in range(n_edge)]) + ";\n\t"
 file.write(c_list)
@@ -338,7 +338,6 @@ file.close()
 
 
 user_choice = sys.argv[3]
-#user_choice = 'no'
 if user_choice == 'yes':
 
 	file_name_lambda_formula = 'treescore.m'
@@ -349,7 +348,8 @@ if user_choice == 'yes':
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], [], [], lb, ub, [], options);\n\n")
 	#file.write(f"disp('Optimal solution t:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal solution c:');\ndisp(exp(x_optimal({1+n_edge+len(gm)}:{n_edge+n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
-	file.write("F= -fval\n\nend\n\n")
+	file.write('exp(vpa(-fval))\n')
+	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\tla=lambda_formula_trivial(x);\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
 	file.write('F = sum(log(l))-length(l)*log(suml);\n\tresult = -F;\nend\n')
@@ -365,7 +365,8 @@ else:
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], Aeq, Beq, lb, ub, [], options);\n\n")
 	#file.write(f"disp('Optimal solution:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
-	file.write("F= -fval\n\nend\n\n")
+	file.write('exp(vpa(-fval))\n')
+	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\tla=lambda_formula_trivial(x);\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
 	file.write('F = sum(log(l))-length(l)*log(suml);\n\tresult = -F;\nend\n')
