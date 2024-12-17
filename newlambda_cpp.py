@@ -9,13 +9,16 @@ topo = sys.argv[1]
 #topo = '(((((((((FULGL,PYGAD_APTFO),(((EGRGA,PELCR),NIPNI),PHACA)),GAVST),((CAPCA,CHAPE_CALAN),((COLST,(((CATAU,HALLE_HALAL),TYTAL),(LEPDI,(APAVI,(BUCRH,PICPU_MERNU))))),(((TAEGU_MANVI_GEOFO_CORBR_ACACH,NESNO_MELUN),FALPE),CARCR)))),((OPHHO,(EURHE,PHALE)),CHAVO)),(((CHLUN,TAUER),CUCCA),BALRE)),PODCR_PHORU),COLLI),(PTEGU,MESUN))'
 #topo = '((((((((((((FULGL,PYGAD_APTFO),(((EGRGA,PELCR),NIPNI),PHACA)),GAVST),(CAPCA,CHAPE_CALAN)),((OPHHO,(EURHE,PHALE)),CHAVO)),((COLST,(((CATAU,HALLE_HALAL),TYTAL),(LEPDI,(APAVI,(BUCRH,PICPU_MERNU))))),(((TAEGU_MANVI_GEOFO_CORBR_ACACH,NESNO_MELUN),FALPE),CARCR))),BALRE),(CHLUN,TAUER)),CUCCA),PODCR_PHORU),COLLI),(PTEGU,MESUN))'
 #topo = '((COLST,(newdataHH_CATAU,(newdataPM_BUCRH_APAVI_LEPDI,TYTAL))),newdataCAGTM_newdataMN_FALPE_CARCR)'
+#topo = '((((FW,HW),GW),(SW,BW)),MW)'
+#topo = '(((((((((((EGRGA_FULGL_GAVST_NIPNI_PELCR_PHACA_PYGAD_APTFO,EURHE_PHALE),APAVI_BUCRH_CARCR_CATAU_COLST_FALPE_HALLE_HALAL_LEPDI_NESNO_MELUN_PICPU_MERNU_TAEGU_MANVI_GEOFO_CORBR_ACACH_TYTAL),CAPCA_CHAPE_CALAN),CHAVO),OPHHO),BALRE),(CHLUN,TAUER)),CUCCA),COLLI),PODCR_PHORU),MESUN_PTEGU)'
+#topo = '(((((((EGRGA_FULGL_GAVST_NIPNI_PELCR_PHACA_PYGAD_APTFO,CAPCA_CHAPE_CALAN),APAVI_BUCRH_CARCR_CATAU_COLST_FALPE_HALLE_HALAL_LEPDI_NESNO_MELUN_PICPU_MERNU_TAEGU_MANVI_GEOFO_CORBR_ACACH_TYTAL),((EURHE_PHALE,OPHHO),CHAVO)),(((CHLUN,TAUER),CUCCA),BALRE)),PODCR_PHORU),COLLI),MESUN_PTEGU)'
 taxaorder = topo.replace("(", "").replace(")", "").split(',')
 
 
 data = []
 file_name = sys.argv[2]
-#file_name = 'landbird.csv'
-#file_name = 'newseq1.csv'
+#file_name = 'neoaves13.csv'
+#file_name = 'whale.csv'
 input_file_path = os.path.join(current_directory, file_name)
 
 
@@ -58,7 +61,9 @@ for mi in taxadata:
 	markerdata.append(orginial)
 #print(markerdata)
 
-
+unique_marker = list(set(markerdata))
+markernum = [markerdata.count(item) for item in unique_marker]
+#print(markernum)
 
 def generate_trivial_marker(taxanum,gm):
     lists = []
@@ -286,17 +291,17 @@ if len(gmloc)>0:
 	file.write(tl_list)
 c_list = ";".join([f"c{i+1}=x[{i+n_edge+len(gmloc)}]" for i in range(n_edge)]) + ";\n\t"
 file.write(c_list)
-file.write(f"\n\n\tstd::vector<double> l({len(data)-1});\n")
+file.write(f"\n\n\tstd::vector<double> l({len(unique_marker)});\n")
 
-for i,m in enumerate(markerdata):
+for i,m in enumerate(unique_marker):
 	en = list(range(n_edge+1))
 	ln = list(range(1,n_leaf+1))
 	f = recursive_split(m,en,ln)
 	fx = '+'.join([f[0][0],f[3][0]])
 	file.write(f'l[{i}] = {fx};')
 	file.write('\r\n')
-file.write(f"plhs[0] = mxCreateDoubleMatrix({len(data)-1}, 1, mxREAL);")
-file.write(f"double* l0 = mxGetDoubles(plhs[0]);\nfor(int i =0; i < {len(data)-1}; i++)\n\tl0[i] = l[i];\n")
+file.write(f"plhs[0] = mxCreateDoubleMatrix({len(unique_marker)}, 1, mxREAL);")
+file.write(f"double* l0 = mxGetDoubles(plhs[0]);\nfor(int i =0; i < {len(unique_marker)}; i++)\n\tl0[i] = l[i];\n")
 file.write("}")
 file.close()
 
@@ -337,6 +342,8 @@ file.write("}")
 file.close()
 
 
+
+#user_choice = 'yes'
 user_choice = sys.argv[3]
 if user_choice == 'yes':
 
@@ -352,7 +359,7 @@ if user_choice == 'yes':
 	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\tla=lambda_formula_trivial(x);\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
-	file.write('F = sum(log(l))-length(l)*log(suml);\n\tresult = -F;\nend\n')
+	file.write(f"F = {markernum}*log(l)-{sum(markernum)}*log(suml);\n\tresult = -F;\nend\n")
 	file.close()
 
 else:
@@ -369,8 +376,7 @@ else:
 	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\tla=lambda_formula_trivial(x);\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
-	file.write('F = sum(log(l))-length(l)*log(suml);\n\tresult = -F;\nend\n')
+	file.write(f"F = {markernum}*log(l)-{sum(markernum)}*log(suml);\n\tresult = -F;\nend\n")
 	file.close()
-
 
 
