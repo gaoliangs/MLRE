@@ -277,9 +277,13 @@ while treetopo != besttreetopo:
 
 	non_bc_split=[]
 	for non_b in non_bunemacluster:
+		split =False
 		for i, item in enumerate(buneman_cluster):
+			if item in non_b:
+				split = True
 			non_b = non_b.replace(item, replacements[i])
-		non_bc_split.append(non_b)
+		if split: 		
+			non_bc_split.append(non_b)
 	#print(non_bc_split)
 
 	for i, item in enumerate(buneman_cluster):
