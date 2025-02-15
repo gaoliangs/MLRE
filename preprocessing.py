@@ -5,14 +5,11 @@ import math
 import numpy as np
 from collections import OrderedDict
 
-current_directory = os.getcwd()
-
 
 # 读取NEXUS文件内容
 file_name = input("input file name: ")
-#file_name = 'myotis_ves.nex'
-input_file_path = os.path.join(current_directory, file_name)
-with open(input_file_path, 'r') as nexus_file:
+#file_name = 'Neoaves_2118_44.nex'
+with open(file_name, 'r') as nexus_file:
     nexus_content = nexus_file.read()
 
 # 查找数据矩阵的开始和结束位置
@@ -21,6 +18,7 @@ matrix_end = nexus_content.find(";", matrix_start)
 
 # 提取数据矩阵部分
 matrix_data = nexus_content[matrix_start:matrix_end].strip()
+
 
 # 读取每一行的名字和内容
 rows = matrix_data.split('\n')
@@ -45,7 +43,6 @@ def replace_question_mark(listA, listB):
     return "".join(listC)
 
 
-
     
 # merge non-conflict marker
 new_data = []
@@ -68,7 +65,6 @@ while i < len(marker):
 
 
 
-
 ###find outgroup taxa
 def filter_lists(names, binaries):
     filtered_names = []
@@ -84,13 +80,9 @@ def filter_lists(names, binaries):
 
 taxaname, taxa_data = filter_lists(new_name, new_data)
 taxanum = len(taxaname)
+print('non-cinflict taxa:',taxaname)
 
-print(taxaname)
-'''
-data_name = list(zip(taxaname,new_data))
-data_name.sort()
-taxaname,new_data = zip(*data_name)
-'''
+
 
 # triplet weight
 triplet = []
@@ -135,7 +127,7 @@ clusterB = [buneman_weight[0].index(indexnum[0])+1]
 clusterA = list(set([1,2,3])-set(clusterB))
 cluster=[[clusterA,clusterB]]
 
-print(cluster)
+
 
 # find buneman cluster
 for i in range(4,taxanum+1):
@@ -216,24 +208,24 @@ for i,c in enumerate(cluster):
 
 
 
-user_input = input("choose threshold: ")
-#user_input=3000
 #threshold
+user_input = input("choose threshold: ")
 bunemancluster = []
-for i in range(len(indexnum)):
-    if indexnum[i]> float(user_input):
-        bunemancluster.append(cluster[i][0])
-
-
+if user_input.isdigit():
+	for i in range(len(indexnum)):
+		if indexnum[i]> float(user_input):
+			bunemancluster.append(cluster[i][0])
+else:
+	user_input = max(indexnum)+1
+	for i in range(len(indexnum)):
+		if indexnum[i]> float(user_input):
+			bunemancluster.append(cluster[i][0])
 
 bunemancluster = [[taxaname[index-1] for index in sub_list] for sub_list in bunemancluster]
-#print('ssd',bunemancluster)
 
 
 # full set
 X = taxaname
-
-
 # find child
 def find_child(full,B):
     B.sort(key=len)
@@ -272,7 +264,7 @@ unresolved = []
 if len(root)>2:
 	unresolved.append(root)
 
-#print(root)
+
 ####
 while len(restbuneman) >0:
     newroot=[]
@@ -296,8 +288,6 @@ while len(restbuneman) >0:
 
     root = newroot
     restbuneman=newbuneman
-
-#print(unresolved)
 
 
 
@@ -353,9 +343,8 @@ for j in range(len(unresolved)):
 
 
     #unresolved data
-    file_name = 'newseq'+str(j+1)+'.csv'
-    output_file_path = os.path.join(current_directory, file_name)
-    with open(output_file_path, 'w') as output_file:
+    output_name = 'newseq'+str(j+1)+'.csv'
+    with open(output_name, 'w') as output_file:
         names = []
         for gi in unresolved[j]:
             if type(gi) == list:
