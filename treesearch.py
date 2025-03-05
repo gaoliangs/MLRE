@@ -1,331 +1,410 @@
-import matlab
-import matlab.engine
-import re
-from operator import itemgetter
 import subprocess
-import os
-import itertools
-import math
-
-def findsplit(s):
-    result = []
-    stack = []
-    current_part = ""
-
-    for char in s:
-        if char == ',' and not stack:
-            result.append(current_part.strip())
-            current_part = ""
-        else:
-            current_part += char
-            if char == '(':
-                stack.append(char)
-            elif char == ')':
-                if stack:
-                    stack.pop()
-
-    result.append(current_part.strip())
-    return result
-#print(findsplit('a,b,(c,d)'))
-
-
+import matlab.engine
+import io
 
 def find_matching_parentheses(s):
-    stack = []
-    result = []
+	'''
+	input: a string, eg: '((a,b),(c,d),e,f)'
+	return: a list of tuples, each tuple contains the index of matching parentheses
+	'''
+	stack = []
+	result = []
 
-    for i, char in enumerate(s):
-        if char == '(':
-            stack.append(i)
-        elif char == ')':
-            if stack:
-                result.append([stack.pop(), i])
+	for i, char in enumerate(s):
+		if char == '(':
+			stack.append(i)
+		elif char == ')':
+			if stack:
+				result.append([stack.pop(), i])
+	
+	#order the result by the first element of each tuple
+	result.sort(key=lambda x: x[0])
 
-    return result
-
-
-
-def findunresolvedsplit(tree):
-	brloc = find_matching_parentheses(tree)
-	for br in brloc:
-		unsp = tree[br[0]:br[1]+1]
-		csp1 = tree[:br[0]]
-		csp2 = tree[br[1]+1:]
-		cn = unsp.count(',')
-		bn = unsp.count('(')
-		#print(unsp,cn,bn)
-		if cn-bn>0:
-			return([unsp,csp1,csp2])
-			break
-#print(findunresolvedsplit('((a,b,(c,d)),(e,f,g))'))
+	return result
 
 
+def findsplit(s):
+	'''
+	input: a newick tree string, eg: '(a,b),(c,d),e,f'
+	return: a list of strings, each string is a part of the tree
+	'''
+	result = []
+	stack = []
+	current_part = ""
 
-def isthesame(str1,str2):
-	b1 = find_matching_parentheses(str1)
-	b2 = find_matching_parentheses(str2)
-	clu1 = [sorted(str1[bb1[0]:bb1[1]+1].replace('(', '').replace(')', '').split(',')) for bb1 in b1]
-	clu2 = [sorted(str2[bb2[0]:bb2[1]+1].replace('(', '').replace(')', '').split(',')) for bb2 in b2]
-	return sorted(clu1) == sorted(clu2)
-
-
-
-def find_last_common_ancestor(bloc,pair1,pair2):
-	for start,end in sorted(bloc,key =itemgetter(1)):
-		if (start<=pair1[0]) & (start<=pair2[0]) & (end>=pair1[1]) & (end>=pair2[1]):
-			return [start,end]
-			break
-
-
-def cluster_level(s,pair):
-	return s[:pair[0]].count('(')-s[:pair[0]].count(')')
-#print(cluster_level(treetopo,[6, 18]))
-
-
-
-
-def spr_x(s):
-    #get all clusters in tree string
-    bracket = find_matching_parentheses(s)
-    clu = [s[i[0]:i[1]+1] for i in bracket]
-    taxon = s.replace("(", "").replace(")", "").split(',')
-    fullclu = clu+taxon
-    
-    for c in clu:
-        two_split = findsplit(c[1:-1])
-        if ('X' == two_split[0])|('X' == two_split[1]):
-            original_c = c
-            newc = [two_split[0] if two_split[1]== 'X' else two_split[1]]
-            fullclu.remove(newc[0])
-            fullclu.remove('X')
-            fullclu.remove(c)
-    #print(fullclu)
-
-    delete_x = s.replace(original_c,newc[0])
-    clu_delete_x = [i.replace(original_c,newc[0]) for i in fullclu]
-    #print(clu_delete_x)
-
-    new = [f'({i},X)' for i in clu_delete_x]
-    #print('sdfgsdgf',clu_delete_x,new)
-    #de_replaced = re.sub(r'\bta1\b', , delete_x)
-
-    sprtree = []
-    for i in range(len(new)):
-        if '(' in clu_delete_x[i]:
-            sprtree.append(delete_x.replace(clu_delete_x[i],new[i]))
-        else:
-            sprtree.append(re.sub(r'\b' + re.escape(clu_delete_x[i]) + r'\b',new[i], delete_x))
-        #print(sprtree)
-
-    return sprtree
-
-def remove_duplicates(trees):
-    unique_trees = []
-
-    for i, tree1 in enumerate(trees):
-        is_duplicate = False
-
-        for j, tree2 in enumerate(trees[i + 1:]):
-            if isthesame(tree1, tree2):
-                is_duplicate = True
-                break
-
-        if not is_duplicate:
-            unique_trees.append(tree1)
-
-    return unique_trees
-
-
-######### split in tree
-
-besttreetopo = input("starting tree: ")
-markerfile = input("input file name: ")
-option = input("use parameter c (yes/no): ").lower()
-useq = input("use parameter q (yes/no): ").lower()
-searchtree = input("constraint tree:")
-'''
-besttreetopo = '((((((((((((FULGL,PYGAD_APTFO),(((EGRGA,PELCR),NIPNI),PHACA)),GAVST),(CAPCA,CHAPE_CALAN)),((OPHHO,(EURHE,PHALE)),CHAVO)),((COLST,(((CATAU,HALLE_HALAL),TYTAL),(LEPDI,(APAVI,(BUCRH,PICPU_MERNU))))),(((TAEGU_MANVI_GEOFO_CORBR_ACACH,NESNO_MELUN),FALPE),CARCR))),BALRE),(CHLUN,TAUER)),CUCCA),PODCR_PHORU),COLLI),(PTEGU,MESUN))'
-markerfile = 'newseq1.csv'
-option='yes'
-useq = 'no'
-searchtree='((CAPCA,CHAPE_CALAN),(EURHE,PHALE),(MESUN,PTEGU),(((FULGL,PYGAD_APTFO),(((EGRGA,PELCR),NIPNI),PHACA)),GAVST),((((NESNO_MELUN,TAEGU_MANVI_GEOFO_CORBR_ACACH),FALPE),CARCR),((((CATAU,HALLE_HALAL),TYTAL),(((BUCRH,PICPU_MERNU),APAVI),LEPDI)),COLST)),TAUER,COLLI,CHLUN,CHAVO,BALRE,PODCR_PHORU,CUCCA,OPHHO)'
-'''
-
-bracketloc = find_matching_parentheses(searchtree)
-cluster_unchange = [searchtree[i[0]:i[1]+1].replace(')','').replace('(','').split(',') for i in bracketloc]
-
-
-treetopo=''
-eng = matlab.engine.start_matlab()
-
-while treetopo != besttreetopo:
-	treetopo = besttreetopo
-
-
-	##NNI
-	print('start NNI')
-	print('topo:',treetopo)
-
-	if useq =='yes':
-		subprocess.run(["python3", "newlambda_q.py", treetopo, markerfile, option])
-	else:
-		subprocess.run(["python3", "newlambda_cpp.py", treetopo, markerfile, option])
-	#eng = matlab.engine.start_matlab()
-	F0=eng.treescore(nargout =1)
-	#eng.exit()
-
-	bracketloc = sorted(find_matching_parentheses(treetopo))
-
-	edgescore = [1]*(len(bracketloc)-1)
-	while edgescore != [len(bracketloc)]*(len(bracketloc)-1):
-		#找到score最小的那条边及括号位置
-		#edge_index = edgescore.index(min(edgescore))+1
-
-		minindex = min(edgescore)
-		edge_index = [i for i in range(len(edgescore)) if edgescore[i] == minindex]
-		for edge in edge_index:
-			loc = bracketloc[edge+1]
-			newsplit = treetopo[loc[0]:loc[1]+1]
-			newsplit = newsplit.replace('(','').replace(')','').split(',')
-			edge_unchange=False
-			for bs in cluster_unchange:
-				if set(bs) == set(newsplit):
-					edgescore[edge]=len(bracketloc)
-					print(edgescore)
-					edge_unchange=True
-					break
-				
-			if edge_unchange:
-				continue
-			else:
-				newtopo = treetopo[:loc[0]]+treetopo[loc[0]+1:loc[1]]+treetopo[loc[1]+1:]
-				unresolvedtree = findunresolvedsplit(newtopo)
-				newtree = findsplit(unresolvedtree[0][1:-1])
-
-				newtreetopo1 = unresolvedtree[1]+'(('+newtree[0]+','+newtree[1]+'),'+newtree[2]+')'+unresolvedtree[2]
-				newtreetopo2 = unresolvedtree[1]+'(('+newtree[0]+','+newtree[2]+'),'+newtree[1]+')'+unresolvedtree[2]
-				newtreetopo3 = unresolvedtree[1]+'(('+newtree[1]+','+newtree[2]+'),'+newtree[0]+')'+unresolvedtree[2]
-
-				newtreetopo =[]
-				if not isthesame(newtreetopo1,treetopo):
-					newtreetopo.append(newtreetopo1)
-				if not isthesame(newtreetopo2,treetopo):
-					newtreetopo.append(newtreetopo2)
-				if not isthesame(newtreetopo3,treetopo):
-					newtreetopo.append(newtreetopo3)
-
-
-				F2 = []
-				for tt in newtreetopo:
-					print('topo:',tt)
-					if useq =='yes':
-						subprocess.run(["python3", "newlambda_q.py", tt, markerfile, option])
-					else:
-						subprocess.run(["python3", "newlambda_cpp.py", tt, markerfile, option])
-					#eng = matlab.engine.start_matlab()
-					F=eng.treescore(nargout =1)
-					#eng.exit()
-
-					F2.append(F)
-			    
-
-				if max(F2) > F0:
-					F0 = max(F2)
-					print('update tree',F0)
-					treetopo = newtreetopo[0] if F2[0] >= F2[1] else newtreetopo[1]
-					bracketloc = sorted(find_matching_parentheses(treetopo))
-
-					for j in range(len(edgescore)):
-						ancestor = find_last_common_ancestor(bracketloc,bracketloc[j+1],bracketloc[edge+1])
-						pathnum = cluster_level(treetopo,bracketloc[j+1])+cluster_level(treetopo,bracketloc[edge+1])-2*cluster_level(treetopo,ancestor)
-						edgescore[j] = pathnum
-					edgescore[edge] = len(bracketloc)
-				else:
-					edgescore[edge]= len(bracketloc)
-
-			print(edgescore)
-
-
-	print('NNItree:',treetopo)
-	print('NNI_F:',F0)
-	besttreetopo = treetopo
-	bestF =F0
-
-
-	##spr
-	print('start SPR')
-	topospr = besttreetopo
-	taxa = topospr.replace("(", "").replace(")", "").split(',')
-
-	bracketloc = sorted(find_matching_parentheses(topospr))
-	clustera = [topospr[i[0]:i[1]+1].replace(')','').replace('(','').split(',') for i in bracketloc]
-	clustera_sorted = [sorted(sublist) for sublist in clustera]
-	cluster_unchange_sorted = [sorted(sublist) for sublist in cluster_unchange]
-	complement_indices = [i for i, sublist in enumerate(clustera_sorted) if sublist not in cluster_unchange_sorted]
-
-	cluster_topo = [topospr[i[0]:i[1]+1] for i in bracketloc]
-	non_bunemacluster = [cluster_topo[i] for i in complement_indices]
-	#print(non_bunemacluster)
-
-	buneman_split=findsplit(searchtree[1:-1])
-	buneman_taxa_sorted = [sorted(bs.replace(')','').replace('(','').split(',')) for bs in buneman_split]
-	complement_indices = [i for i, sublist in enumerate(clustera_sorted) if sublist in buneman_taxa_sorted]
-	buneman_cluster = [cluster_topo[i] for i in complement_indices]+[buneman_taxa for buneman_taxa in buneman_split if buneman_taxa.count('(')==0]
-	#print(buneman_cluster)
-
-	replacements = [f"split{i+1}" for i in range(len(buneman_cluster))]
-
-	non_bc_split=[]
-	for non_b in non_bunemacluster:
-		split =False
-		for i, item in enumerate(buneman_cluster):
-			if item in non_b:
-				split = True
-			non_b = non_b.replace(item, replacements[i])
-		if split: 		
-			non_bc_split.append(non_b)
-	#print(non_bc_split)
-
-	for i, item in enumerate(buneman_cluster):
-		topospr = topospr.replace(item, replacements[i])
-
-	allspr = []
-	for i in non_bc_split+replacements:
-		xtopo = topospr.replace(i,'X')
-		xspr = spr_x(xtopo)
-		spr = [j.replace('X',i) for j in xspr]
-		allspr.append(spr)
-
-	allspr = [element for i in allspr for element in i]
-	#print(allspr)
-
-	allsprtree = []
-	for ast in allspr:
-		for i, item in enumerate(buneman_cluster):
-			ast = re.sub(rf"\bsplit{i+1}\b", item, ast)
-		allsprtree.append(ast)
-
-	#print(len(allsprtree))
-
-
-	for tree in allsprtree:
-		print('topo:',tree)
-		if useq =='yes':
-			subprocess.run(["python3", "newlambda_q.py", tree, markerfile, option])
+	for char in s:
+		if char == ',' and not stack:
+			result.append(current_part.strip())
+			current_part = ""
 		else:
-			subprocess.run(["python3", "newlambda_cpp.py", tree, markerfile, option])
-		#eng = matlab.engine.start_matlab()
-		F=eng.treescore(nargout =1)
-		#eng.exit()
+			current_part += char
+			if char == '(':
+				stack.append(char)
+			elif char == ')':
+				if stack:
+					stack.pop()
 
-		if F>bestF:
-			besttreetopo = tree
-			bestF =F
+	result.append(current_part.strip())
+	return result
+
+
+def find_minimum_parentheses(s, target):
+	# 用一个栈来追踪括号的开闭
+	stack = []
+	min_paren = None
+	start_idx = None
+	
+	# 遍历字符串
+	for i, char in enumerate(s):
+		if char == '(':
+			# 遇到左括号，开始一个新的层次
+			stack.append(i)
+		elif char == ')':
+			# 遇到右括号，结束一个层次
+			start = stack.pop()
+			# 如果这个括号是我们关注的括号，判断X是否在其中
+			if min_paren is None and target in s[start + 1:i]:
+				min_paren = (start, i)
+				start_idx = start + 1
+		
+	return s[min_paren[0]:min_paren[1] + 1] if min_paren else None
+
+
+def find_target_bracket(s, target_cluster):
+	# 定义一个栈来追踪括号位置
+	stack = []
+	target_element = target_cluster.replace('(','').replace(')','').split(',')
+	
+	# 遍历字符串，检查每个括号的内容
+	for i in range(len(s)):
+		if s[i] == '(':
+			stack.append(i)  # 记录左括号位置
+		elif s[i] == ')':
+			start = stack.pop()  # 获取最近的左括号位置
+			# 获取当前括号内的子串
+			content = s[start+1:i]
+			content_elements = content.replace('(','').replace(')','').split(',')
+			# 如果目标子串在括号内，返回该括号的范围
+			if set(target_element) == set(content_elements):
+				return s[0:start].count('(') 
+	return None  # 如果没有找到，返回None
+
+def treescore(treetopo,markerfile,usec,useq):
+	print('tree:',treetopo)
+	if useq =='yes':
+		subprocess.run(["python3", "newlambda_q.py", treetopo, markerfile, usec])
+	else:
+		subprocess.run(["python3", "newlambda_cpp.py", treetopo, markerfile, usec])
+
+	eng = matlab.engine.start_matlab()
+	stdout_capture = io.StringIO()
+	# 调用 MATLAB 函数并获取回传结果，同时将输出捕获到 StringIO 对象
+	logL = eng.treescore(nargout=1, stdout=stdout_capture)
+	#logL = eng.treescore(nargout =1)
+	print('logL =',logL)
+	eng.exit()
+	return logL
+
+
+
+def nni(s,s_cluster):
+
+	subtree = find_minimum_parentheses(s,s_cluster)
+	s_unresolved = subtree.replace(s_cluster,s_cluster[1:-1])
+	two_clades = findsplit(s_cluster[1:-1])
+	lst = findsplit(subtree[1:-1])
+	third_clade = lst[0] if lst[0] != s_cluster else lst[1]
+	 
+	new_nni1 = '((' + two_clades[0]+','+third_clade+'),'+ two_clades[1]+')'
+	new_nni2 = '((' + two_clades[1]+','+third_clade+'),'+ two_clades[0]+')'
+	
+	newtree1 = s.replace(subtree,new_nni1)
+	newtree2 = s.replace(subtree,new_nni2)
+	
+	edge_index1 = newtree1.split(new_nni1)[0].count('(')+1
+	edge_index2 = newtree2.split(new_nni2)[0].count('(')+1
+	
+	
+	return newtree1,newtree2,edge_index1,edge_index2
+
+#print(nni('((((((newdataMJLFD,newdataK),BALRE),((CHLUN,TAUER),CUCCA)),newdataH),COLLI),newdataI)','((CHLUN,TAUER),CUCCA)'))
+
+
+
+def spr_x(s,s_subtree):
+	#prune the subtree
+	cut_subtree = find_minimum_parentheses(s, s_subtree)
+	lst = findsplit(cut_subtree[1:-1])
+	sister_subtree = lst[0] if lst[0] != s_subtree else lst[1]
+	#print(sister_subtree)
+	pruned_tree = s.replace(cut_subtree,sister_subtree)
+
+	#regraft the subtree
+	sprtree = []
+	bracket_in_pruned = find_matching_parentheses(pruned_tree)
+	cluster_in_pruned = [pruned_tree[i[0]:i[1]+1] for i in bracket_in_pruned]
+	taxa = pruned_tree.replace('(','').replace(')','').split(',') 
+	subtree = taxa+cluster_in_pruned
+	subtree.remove(sister_subtree)
+
+	#remove nni tree
+	if '(' in sister_subtree:
+		sister_children = findsplit(sister_subtree[1:-1])
+		subtree = [item for item in subtree if item not in sister_children]
+
+	if pruned_tree != sister_subtree:
+		subtree_parent = find_minimum_parentheses(pruned_tree, sister_subtree)
+		subtree.remove(subtree_parent)
+		lst = findsplit(subtree_parent[1:-1])
+		parent_neighbor = lst[0] if lst[0] != sister_subtree else lst[1]
+		subtree.remove(parent_neighbor)
+
+	for i in subtree:
+		new_spr = pruned_tree.replace(i,'('+i+','+s_subtree+')')
+		sprtree.append(new_spr)
+
+	return sprtree
+
+#aa = spr_x('(((((((newdataMJLFD,newdataK),BALRE),(CHLUN,TAUER)),CUCCA),newdataH),COLLI),newdataI)','((((((newdataMJLFD,newdataK),BALRE),(CHLUN,TAUER)),CUCCA),newdataH),COLLI)')
+#print(len(aa))
+
+
+def edge_distance(s,target_edge):
+	#find the target edge
+	bracket = find_matching_parentheses(s)
+	target = bracket[target_edge]
+
+	#find the distance between the target edge and the other edges
+	edge_distance = []
+	for i in bracket[1:]:
+		if (i[0] < target[0]) & (i[1] > target[1]):
+			edge_distance.append(s[i[0]:target[0]].count('(')-s[i[0]:target[0]].count(')'))
+		elif (i[0] > target[0]) & (i[1] < target[1]):
+			edge_distance.append(s[target[0]:i[0]].count('(')-s[target[0]:i[0]].count(')'))
+		elif i == target:
+			edge_distance.append('max')
+		elif (i[0] < target[0]) & (i[1] < target[0]):
+			edge_distance.append(s[i[1]:target[0]].count('(')+s[i[1]:target[0]].count(')')-2*len(find_matching_parentheses(s[i[1]:target[0]])))
+		elif (i[0] > target[1]) & (i[1] > target[1]):
+			edge_distance.append(s[target[1]:i[0]].count('(')+s[target[1]:i[0]].count(')')-2*len(find_matching_parentheses(s[target[1]:i[0]])))
+		
+	return edge_distance
+
+
+#search_tree = '(((((((((APAVI,(LEPDI,PICPU_MERNU)),BUCRH),((CATAU,HALLE_HALAL),TYTAL)),(CARCR,((FALPE,NESNO_MELUN),TAEGU_MANVI_GEOFO_CORBR_ACACH))),COLST),(((((BALRE,((((EGRGA,(NIPNI,PELCR)),PHACA),(FULGL,PYGAD_APTFO)),GAVST)),CHAVO),OPHHO),(CAPCA,CHAPE_CALAN)),(CHLUN,TAUER))),(EURHE,PHALE)),(COLLI,(CUCCA,PODCR_PHORU))),(MESUN,PTEGU))'
+#constraint_tree = '((CAPCA,CHAPE_CALAN),(EURHE,PHALE),(MESUN,PTEGU),(((FULGL,PYGAD_APTFO),((EGRGA,NIPNI,PELCR),PHACA)),GAVST),((((NESNO_MELUN,TAEGU_MANVI_GEOFO_CORBR_ACACH),FALPE),CARCR),((CATAU,HALLE_HALAL),((BUCRH,PICPU_MERNU),APAVI,LEPDI),TYTAL),COLST),BALRE,CUCCA,CHLUN,COLLI,TAUER,OPHHO,CHAVO,PODCR_PHORU)'
+
+
+search_tree = input('Please input the initial tree: ')
+constraint = input('Please input the constraint tree: ')
+markerfile = input('Please input the marker file: ')
+usec = input("use parameter c (yes/no): ").lower()
+useq = input("use parameter c (yes/no): ").lower()
+
+
+if constraint == "":
+	with open(markerfile, 'r') as csv_file:
+		csv_content = csv_file.readlines()
+		constraint_tree = '('+csv_content[0].strip()+')'
+elif constraint == "buneman":
+	threshold = input('Please input the threshold(default:0.95): ')
+	if threshold == '':
+		threshold = 0.95
+	result = subprocess.run(["python3", "bunemantree.py", markerfile, threshold], stdout=subprocess.PIPE, text=True)
+	constraint_tree = result.stdout.strip()
+else:
+	constraint_tree = constraint
+
+
+if search_tree == "":
+	result = subprocess.run(["python3", "initialtree.py", markerfile,constraint_tree], stdout=subprocess.PIPE, text=True)
+	search_tree = result.stdout.strip()
+
+
+
+def check_inclusion(search_tree, con_tree):
+	clusters_search_tree = [search_tree[start:end+1] for start, end in find_matching_parentheses(search_tree)]
+	clusters_constraint_tree = [con_tree[start:end+1] for start, end in find_matching_parentheses(con_tree)]
+	delete = []
+	for cluster in clusters_constraint_tree:
+		cluster_constraint = cluster.replace(')','').replace('(','').split(',')
+		for taxon in clusters_search_tree:
+			clusters_search = taxon.replace(')','').replace('(','').split(',')
+			if set(cluster_constraint) == set(clusters_search):
+				#print(cluster)
+				break
+		else:
+			delete.append(cluster)
+	constrainttree = con_tree
+	for cluster in delete:
+		constrainttree = constrainttree.replace(cluster, cluster[1:-1])
+
+	return constrainttree
+
+print('The search tree is:', search_tree)
+constraint_tree = check_inclusion(search_tree,constraint_tree)
+print('The constraint tree is:', constraint_tree)
+constraint_cluster = [constraint_tree[start:end+1] for start, end in find_matching_parentheses(constraint_tree)[1:]]
+
+
+
+#################NNI search#################
+# Initialize the best tree and its F value
+
+best_tree = search_tree
+best_F_value = treescore(search_tree,markerfile,usec,useq)
+
+
+current_tree = ''
+while current_tree != best_tree:
+	current_tree = best_tree
+	# Initialize the edge index to 0
+
+	edge_num = [0]*(current_tree.count(',')-1)
+	while edge_num != ['max']*(current_tree.count(',')-1):
+		current_tree = best_tree
+
+		constraint_edge = [find_target_bracket(current_tree,cc) for cc in constraint_cluster]
+		for idx in constraint_edge:
+			edge_num[idx-1] = 'max'
+		search_cluster = [current_tree[start:end+1] for start, end in find_matching_parentheses(current_tree)[1:]]
+		numbers = [(i, value) for i, value in enumerate(edge_num) if isinstance(value, (int, float))]
+		sorted_numbers = sorted(numbers, key=lambda x: x[1])
+		sorted_indices = [i for i, _ in sorted_numbers]
+		#print(edge_num)
+
+		for edge in sorted_indices:
+			new_tree_1, new_tree_2, edge_index1, edge_index2 = nni(current_tree, search_cluster[edge])
+			
+			# Calculate the F value for both new trees
+			F_value_1 = treescore(new_tree_1,markerfile,usec,useq)
+			F_value_2 = treescore(new_tree_2,markerfile,usec,useq)
+			
+			# If a better tree is found, update the best tree
+			if F_value_1 > max(best_F_value,F_value_2):
+				best_tree = new_tree_1
+				best_F_value = F_value_1
+				edge_num = edge_distance(best_tree,edge_index1)
+				print('update',edge_num)
+				break  # Exit the loop and re-evaluate the tree
+			
+			if F_value_2 > max(best_F_value,F_value_1):
+				best_tree = new_tree_2
+				best_F_value = F_value_2
+				edge_num = edge_distance(best_tree,edge_index2)
+				print('update',edge_num)
+				break  # Exit the loop and re-evaluate the tree
+
+			if best_F_value > max(F_value_1,F_value_2):
+				edge_num[edge] = 'max'
+				print(edge_num)
+
+	print('The best NNI tree is:', best_tree)
+	print('The best NNI score is:', best_F_value)
+
+
+	#################SPR search#################
+	print('start SPR')
+	current_tree = best_tree
+
+
+	def spr(s):
+		cluster = [s[start:end+1] for start, end in find_matching_parentheses(s)[1:]]
+		taxa = s.replace('(','').replace(')','').split(',')
+		
+		subtree = cluster+taxa
+		spr = []
+		for i in subtree:
+			new_spr = spr_x(s,i)
+			spr.append(new_spr)
+
+		sprtree = [item for sublist in spr for item in sublist]
+		return sprtree
+
+	#print(spr('((newdataH,COLLI),newdataI)'))
+		
+
+	result =[]
+	def recursive_split(s):
+		parts = findsplit(s[1:-1])
+		if len(parts)>2:
+			result.append(s)
+	    
+		for part in parts:
+			if '(' in part and ')' in part:  # part contains nested brackets
+				layer = recursive_split(part)
+
+		return result
+
+	unresolved_node = recursive_split(constraint_tree)
+	#print('unresolved_node',unresolved_node)
+
+
+	def find_corresponding_elements(listA, listB):
+		string = []
+		node = []
+		# 对listA中的每个元素，查找其对应的listB元素
+		for a in listA:
+			taxon_a = a.replace(')','').replace('(','').split(',')
+			for b in listB:
+				taxon_b = b.replace(')','').replace('(','').split(',')
+				if set(taxon_a) == set(taxon_b):
+					string.append(a)
+					node.append(b)
+
+		return string,node
+
+
+	def replace_with_split(s, replacement_list):
+		replacements = {replacement: f"split{i+1}" for i, replacement in enumerate(replacement_list)}
+
+		new_s = s
+		for old, new in replacements.items():
+			new_s = new_s.replace(old, new)
+
+		return new_s, replacements  # 返回替换后的字符串和替换字典
+
+
+	def restore_replacements(result_list, replacements):
+		restored_list = []
+		for item in result_list:
+			restored_item = item
+			for split, original in replacements.items():
+				restored_item = restored_item.replace(original, split)
+			restored_list.append(restored_item)
+		return restored_list
+
+
+
+	tree_cluster = [current_tree[start:end+1] for start, end in find_matching_parentheses(current_tree)]
+	string, node = find_corresponding_elements(tree_cluster,unresolved_node)
+	#print('aa',string,node)
+
+	result = []
+	for i in range(len(string)):
+		split_list = findsplit(node[i][1:-1])
+		st, n = find_corresponding_elements(tree_cluster,split_list)
+		#print('mm',st,n)
+		new_s, replacements = replace_with_split(string[i],st)
+		#print('new_s',new_s,replacements)
+		spr_subtree = spr(new_s)
+		#print(spr_subtree)
+		spr_tree = restore_replacements(spr_subtree,replacements)
+		if len(spr_tree) > 0:
+			sprtree = [current_tree.replace(string[i],spr) for spr in spr_tree]
+			result.append(sprtree)
+		#result.append(spr_tree)
+
+	flattened_result = [item for sublist in result for item in sublist]
+	#print(flattened_result)
+
+
+	for tree in flattened_result:
+		F = treescore(tree,markerfile,usec,useq)
+		if F > best_F_value:
+			best_tree = tree
+			best_F_value =F
 			break
 
-	print('spr_tree:',besttreetopo)
-	print('spr_F:',bestF)
-
-
-eng.exit()
-
+	print('spr_tree:',best_tree)
+	print('spr_score:',best_F_value)
