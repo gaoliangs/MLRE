@@ -30,7 +30,7 @@ If you do not intend to use Buneman clustering, you may skip the threshold input
 
 ```
 Input file:  .nex  
-Threshold:   A number (Buneman weight) / Press Enter to skip clustering
+Threshold:   buneman weight/ Press Enter to skip clustering
 Output files: newseq1.csv, newseq2.csv, ...
 ```
 
@@ -54,16 +54,15 @@ Run the `treesearch.py` script. This will perform a NNI search first, followed b
 
 If you only want to calculate the maximum likelihood value for a specific tree topology without performing a tree search, you can run the `treevalue.py` script. 
 
-Provide one or more trees in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. The script will output the branch lengths (plus mutation rates/character deletion rates) and the F value for each input tree.
+Provide one or more trees in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. The script will output the branch lengths (plus insertion rates/missing rates) and the Likelihood value for each input tree.
 
-
-   ```
-   starting tree: tree(newick)  
-   input file: .csv  
-   option: parameter c (yes/no)  
-           parameter q (yes/no)     
-   output: treetopo with parameters & F-value
-   ```
+```
+input tree file:  .txt 
+input file: .csv  
+option: parameter c (yes/no)  
+        parameter q (yes/no)     
+output: treetopo with parameters & Likelihood value
+```
 
 
 #### 4. Support value
