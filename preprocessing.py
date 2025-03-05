@@ -3,6 +3,7 @@ import os
 import itertools 
 import math
 import numpy as np
+from scipy.stats import binomtest
 from collections import OrderedDict
 
 
@@ -100,13 +101,17 @@ for j in itertools.combinations(list(range(taxanum)), 3):
 	triplet.append([na,nb,nc])
 
 
+
 # buneman weight
 weight = triplet
 buneman_weight = [[0,0,0] for i in range(len(triplet))]
 for i in range(len(triplet)):
     for j in range(3):
-        buneman_weight[i][j] = weight[i][j] - sum(weight[i])+max(weight[i])+min(weight[i])
-        if buneman_weight[i][j] < 0:
+        if weight[i][j] == max(weight[i]):
+            #buneman_weight[i][j] = weight[i][j] - sum(weight[i])+max(weight[i])+min(weight[i])
+            result = binomtest(max(weight[i]), sum(weight[i])-min(weight[i]), 0.5, alternative='less')
+            buneman_weight[i][j] = result.pvalue
+        else:
             buneman_weight[i][j] = 0
     
 
@@ -206,12 +211,21 @@ for i,c in enumerate(cluster):
         bc.append(taxaname[j-1])
     print(bc,indexnum[i])
 
+#is number
+def is_number(s):
+	try:
+		float(s)
+		return True
+	except ValueError:
+		pass
+	return False
+
 
 
 #threshold
 user_input = input("choose threshold: ")
 bunemancluster = []
-if user_input.isdigit():
+if is_number(user_input):
 	for i in range(len(indexnum)):
 		if indexnum[i]> float(user_input):
 			bunemancluster.append(cluster[i][0])
@@ -220,6 +234,7 @@ else:
 	for i in range(len(indexnum)):
 		if indexnum[i]> float(user_input):
 			bunemancluster.append(cluster[i][0])
+
 
 bunemancluster = [[taxaname[index-1] for index in sub_list] for sub_list in bunemancluster]
 
