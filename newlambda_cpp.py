@@ -1,38 +1,16 @@
 from functools import reduce
 import re
 import sys
-import os
 
-current_directory = os.getcwd()
 
 topo = sys.argv[1]
-#topo = '(((((((((FULGL,PYGAD_APTFO),(((EGRGA,PELCR),NIPNI),PHACA)),GAVST),((CAPCA,CHAPE_CALAN),((COLST,(((CATAU,HALLE_HALAL),TYTAL),(LEPDI,(APAVI,(BUCRH,PICPU_MERNU))))),(((TAEGU_MANVI_GEOFO_CORBR_ACACH,NESNO_MELUN),FALPE),CARCR)))),((OPHHO,(EURHE,PHALE)),CHAVO)),(((CHLUN,TAUER),CUCCA),BALRE)),PODCR_PHORU),COLLI),(PTEGU,MESUN))'
-#topo = '((((((((((((FULGL,PYGAD_APTFO),(((EGRGA,PELCR),NIPNI),PHACA)),GAVST),(CAPCA,CHAPE_CALAN)),((OPHHO,(EURHE,PHALE)),CHAVO)),((COLST,(((CATAU,HALLE_HALAL),TYTAL),(LEPDI,(APAVI,(BUCRH,PICPU_MERNU))))),(((TAEGU_MANVI_GEOFO_CORBR_ACACH,NESNO_MELUN),FALPE),CARCR))),BALRE),(CHLUN,TAUER)),CUCCA),PODCR_PHORU),COLLI),(PTEGU,MESUN))'
-#topo = '((COLST,(newdataHH_CATAU,(newdataPM_BUCRH_APAVI_LEPDI,TYTAL))),newdataCAGTM_newdataMN_FALPE_CARCR)'
-#topo = '((((FW,HW),GW),(SW,BW)),MW)'
-#topo = '(((((((((((EGRGA_FULGL_GAVST_NIPNI_PELCR_PHACA_PYGAD_APTFO,EURHE_PHALE),APAVI_BUCRH_CARCR_CATAU_COLST_FALPE_HALLE_HALAL_LEPDI_NESNO_MELUN_PICPU_MERNU_TAEGU_MANVI_GEOFO_CORBR_ACACH_TYTAL),CAPCA_CHAPE_CALAN),CHAVO),OPHHO),BALRE),(CHLUN,TAUER)),CUCCA),COLLI),PODCR_PHORU),MESUN_PTEGU)'
-#topo = '(((((((EGRGA_FULGL_GAVST_NIPNI_PELCR_PHACA_PYGAD_APTFO,CAPCA_CHAPE_CALAN),APAVI_BUCRH_CARCR_CATAU_COLST_FALPE_HALLE_HALAL_LEPDI_NESNO_MELUN_PICPU_MERNU_TAEGU_MANVI_GEOFO_CORBR_ACACH_TYTAL),((EURHE_PHALE,OPHHO),CHAVO)),(((CHLUN,TAUER),CUCCA),BALRE)),PODCR_PHORU),COLLI),MESUN_PTEGU)'
 taxaorder = topo.replace("(", "").replace(")", "").split(',')
 
-
-data = []
 file_name = sys.argv[2]
-#file_name = 'neoaves13.csv'
-#file_name = 'whale.csv'
-input_file_path = os.path.join(current_directory, file_name)
-
-
-with open(input_file_path, 'r') as mark:
-   line = mark.readlines()
-data.append(line[0][:-1].split(","))
-for i in range(1,len(line)):
-   line1 = line[i][:-1].replace('B','01')
-   marker = line1.split(",")
-   data.append(marker)
-
-
-taxaname= data[0]
-taxadata = data[1:]
+with open(file_name, 'r') as csv_file:
+    csv_content = csv_file.readlines()
+taxaname = csv_content[0].strip().split(',')
+taxadata = [line.strip().replace('B','01').split(',') for line in csv_content[1:]]
 
 
 #grouptaxa,singletaxa的taxa名
@@ -40,7 +18,7 @@ singletaxa = []
 grouptaxa = []
 for col_index in range(len(taxaname)):
    # 判断该列是否存在 'B'
-   if any(row[col_index] == '01' for row in data):
+   if any(row[col_index] == '01' for row in taxadata):
       grouptaxa.append(taxaname[col_index])
    else:
       singletaxa.append(taxaname[col_index])
@@ -93,7 +71,6 @@ for ti in trivial_marker:
       tritopo = pattern.sub(ti[j], tritopo, count=1)
    trivialtopo.append(tritopo)
 #print(trivialtopo)
-
 
 
 #number of edges
@@ -273,8 +250,7 @@ for i in range(1,n_edge+1):
 
 
 file_name_lambda_formula = 'lambda_formula.cpp'
-output_file_path = os.path.join(current_directory, file_name_lambda_formula)
-file = open(output_file_path, "w+")
+file = open(file_name_lambda_formula, "w+")
 
 file.write("#include <mex.h>\n#include <vector>\n\n")
 file.write("void mexFunction(int nlhs, mxArray* plhs[], int nrhs, mxArray const* prhs[])\n{\n\n")
@@ -308,8 +284,7 @@ file.close()
 
 
 file_name_lambda_formula_trivial = 'lambda_formula_trivial.cpp'
-output_file_path = os.path.join(current_directory, file_name_lambda_formula_trivial)
-file = open(output_file_path, "w+")
+file = open(file_name_lambda_formula_trivial, "w+")
 
 file.write("#include <mex.h>\n#include <vector>\n\n")
 file.write("void mexFunction(int nlhs, mxArray* plhs[], int nrhs, mxArray const* prhs[])\n{\n\n")
@@ -347,15 +322,14 @@ file.close()
 user_choice = sys.argv[3]
 if user_choice == 'yes':
 
-	file_name_lambda_formula = 'treescore.m'
-	output_file_path = os.path.join(current_directory, file_name_lambda_formula)
-	file = open(output_file_path, "w+")
+	file_name_script = 'treescore.m'
+	file = open(file_name_script, "w+")
 	file.write('function [F] = treescore()\nclear all\n\nmex -silent lambda_formula.cpp -R2018a \nmex -silent lambda_formula_trivial.cpp -R2018a \n objective = @(x) myObjective(x);\n')
 	file.write(f'x0 = ones(1,{n_edge*2+len(gm)});\nlb = [zeros(1,{n_edge+len(gm)}),ones(1,{n_edge})*-10];\nub = [ones(1,{n_edge+len(gm)}),ones(1,{n_edge})*10];\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], [], [], lb, ub, [], options);\n\n")
-	#file.write(f"disp('Optimal solution t:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal solution c:');\ndisp(exp(x_optimal({1+n_edge+len(gm)}:{n_edge+n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
-	file.write('exp(vpa(-fval))\n')
+	file.write(f"disp('Optimal solution t:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal solution c:');\ndisp(exp(x_optimal({1+n_edge+len(gm)}:{n_edge+n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
+	#file.write('exp(vpa(-fval))\n')
 	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\tla=lambda_formula_trivial(x);\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")
@@ -363,16 +337,15 @@ if user_choice == 'yes':
 	file.close()
 
 else:
-	file_name_lambda_formula = 'treescore.m'
-	output_file_path = os.path.join(current_directory, file_name_lambda_formula)
-	file = open(output_file_path, "w+")
+	file_name_script = 'treescore.m'
+	file = open(file_name_script, "w+")
 	file.write('function [F] = treescore()\nclear all\n\nmex -silent lambda_formula.cpp -R2018a \nmex -silent lambda_formula_trivial.cpp -R2018a \n objective = @(x) myObjective(x);\n')
 	file.write(f'x0 = ones(1,{2*n_edge+len(gm)});\nlb = zeros(1,{2*n_edge+len(gm)});\nub = ones(1,{2*n_edge+len(gm)});\n')
 	file.write(f'Aeq = zeros({n_edge}, length(x0));\nfor i = 1:{n_edge}\n\tAeq(i, i + {n_edge+len(gmloc)}) = 1;\nend\nBeq = zeros({n_edge}, 1);\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], Aeq, Beq, lb, ub, [], options);\n\n")
-	#file.write(f"disp('Optimal solution:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
-	file.write('exp(vpa(-fval))\n')
+	file.write(f"disp('Optimal solution:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal objective function value:');\ndisp(exp(vpa(-fval)));\n")
+	#file.write('exp(vpa(-fval))\n')
 	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\tla=lambda_formula_trivial(x);\n\t")
 	file.write(f"suml={sumlambda}-sum(la);\n\t")

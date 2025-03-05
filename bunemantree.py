@@ -1,25 +1,18 @@
-import os
 import itertools
 import math
+import sys
+from scipy.stats import binomtest
 
 #buneman tree
-current_directory = os.getcwd()
-file_name=input("marker file: ")
-current_directory = os.getcwd()
-input_file_path = os.path.join(current_directory, file_name)
-data = []
-with open(input_file_path, 'r') as mark:
-   line = mark.readlines()
-data.append(line[0][:-1].split(","))
-for i in range(1,len(line)):
-   line1 = line[i][:-1].replace('B','01')
-   marker = line1.split(",")
-   data.append(marker)
 
 
-taxaname= data[0]
-taxa_data = data[1:]
+file_name = sys.argv[1]
+with open(file_name, 'r') as csv_file:
+    csv_content = csv_file.readlines()
+taxaname = csv_content[0].strip().split(',')
+taxa_data = [line.strip().replace('B','01').split(',') for line in csv_content[1:]]
 taxanum=len(taxaname)
+
 
 triplet = []
 for j in itertools.combinations(list(range(len(taxa_data[0]))), 3):
@@ -41,8 +34,11 @@ weight = triplet
 buneman_weight = [[0,0,0] for i in range(len(triplet))]
 for i in range(len(triplet)):
     for j in range(3):
-        buneman_weight[i][j] = weight[i][j] - sum(weight[i])+max(weight[i])+min(weight[i])
-        if buneman_weight[i][j] < 0:
+        if weight[i][j] == max(weight[i]):
+            #buneman_weight[i][j] = weight[i][j] - sum(weight[i])+max(weight[i])+min(weight[i])
+            result = binomtest(max(weight[i]), sum(weight[i])-min(weight[i]), 0.5, alternative='less')
+            buneman_weight[i][j] = result.pvalue
+        else:
             buneman_weight[i][j] = 0
     
 
@@ -140,17 +136,33 @@ for i,c in enumerate(cluster):
     bc= []
     for j in c[0]:
         bc.append(taxaname[j-1])
-    print(bc,indexnum[i])
+    #print(bc,indexnum[i])
+
+
+#is number
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+    return False
 
 
 
-user_input = input("choose threshold: ")
-#user_input=3000
 #threshold
+threshold = sys.argv[2]
+#threshold = input("choose threshold: ")
 bunemancluster = []
-for i in range(len(indexnum)):
-    if indexnum[i]> float(user_input):
-        bunemancluster.append(cluster[i][0])
+if is_number(threshold):
+    for i in range(len(indexnum)):
+        if indexnum[i]> float(threshold):
+            bunemancluster.append(cluster[i][0])
+else:
+    threshold = max(indexnum)+1
+    for i in range(len(indexnum)):
+        if indexnum[i]> float(threshold):
+            bunemancluster.append(cluster[i][0])
 
 
 bunemancluster = [[taxaname[index-1] for index in sub_list] for sub_list in bunemancluster]
@@ -193,9 +205,10 @@ fulltree = str(fulltree).replace("'","").replace("[","(").replace("]",")").repla
 print(fulltree)
 
 
-file_name = 'bunemantree.txt'
-output_file_path = os.path.join(current_directory, file_name)
-file = open(output_file_path, "w+")
+'''
+output_file = 'bunemantree.txt'
+file = open(output_file, "w+")
 file.write(fulltree+';')
 file.close()
+'''
 
