@@ -1,8 +1,6 @@
 #preprocessing
-import os
 import itertools 
 import math
-import numpy as np
 from scipy.stats import binomtest
 from collections import OrderedDict
 
