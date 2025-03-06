@@ -65,7 +65,7 @@ output: treetopo with parameters & Likelihood value
 ```
 
 
-#### 4. Support value
+#### 4. Support values
 This method uses the aBayes approach to calculate the support values for each edge in the tree. To compute these values, run the `supportvalue.py` script, which will evaluate the support for each edge in the phylogenetic tree.
 ```
 input tree: tree topology(newick)
