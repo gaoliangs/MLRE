@@ -49,7 +49,7 @@ Constraint tree:
 Marker file: .csv 
 Option:
   parameter c (yes/no)  
-  parameter q (yes/no) (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
+  parameter q (yes/no) (Hint: The parameter q is not recommended for cases with a large number of taxa.)
 ```
 
 
