@@ -339,7 +339,7 @@ else:
 	file.write(f'Aeq = zeros({n_edge}, length(x0));\nfor i = 1:{n_edge}\n\tAeq(i, i + {n_edge+len(gmloc)+n_leaf}) = 1;\nend\nBeq = zeros({n_edge}, 1);\n\n')
 	file.write("options = optimoptions('fmincon', 'Display', 'off','MaxFunctionEvaluations',50000,'MaxIterations',10000);\n")
 	file.write("[x_optimal,fval,exitflag] = fmincon(objective, x0, [], [], Aeq, Beq, lb, ub, [], options);\n\n")
-	file.write(f"disp('Optimal solution:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal solution q:');\ndisp(x_optimal({n_edge+len(gm)+1}:{n_edge+len(gm)+n_leaf}));\ndisp('Optimal log likelihood:');\ndisp(-fval);\n")
+	file.write(f"disp('Optimal solution t:');\ndisp(-log(x_optimal(1:{n_edge+len(gm)})));\ndisp('Optimal solution q:');\ndisp(x_optimal({n_edge+len(gm)+1}:{n_edge+len(gm)+n_leaf}));\ndisp('Optimal log likelihood:');\ndisp(-fval);\n")
 	file.write("F= -fval;\n\nend\n\n")
 	file.write("function result = myObjective(x)\n\tl=lambda_formula(x);\n\t")
 	file.write('k='+str(kvector)+';\n\t')
