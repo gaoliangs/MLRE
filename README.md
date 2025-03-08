@@ -30,7 +30,7 @@ If you do not intend to use Buneman clustering, you may skip the threshold input
 
 ```
 Input file:  .nex  
-Threshold:   buneman weight/ Press Enter to skip clustering
+Threshold: buneman weight/ Press Enter to skip clustering
 Output files: newseq1.csv, newseq2.csv, ...
 ```
 
@@ -39,15 +39,18 @@ Output files: newseq1.csv, newseq2.csv, ...
 
 Run the `treesearch.py` script. This will perform a NNI search first, followed by a SPR (Subtree Pruning and Regrafting) search. 
 
-- The default initial tree is a Triplet-Joining tree. Simply press Enter to use the default. If you wish to use a custom tree, input a valid Newick format tree.
-- Constraint tree:
+```
+Initial tree:
+   The default initial tree is a Triplet-Joining tree. Simply press Enter to use the default.
+   If you wish to use a custom tree, input a valid Newick format tree.
+Constraint tree:
    If you do not require a constraint tree, simply press Enter.
    If you need to use a constraint tree, you can: Input buneman to use the default Buneman tree. Alternatively, input a custom Newick format tree.
-- Marker file: `.csv`  
-- Option:
-  parameter `c` (yes/no)  
-  parameter `q` (yes/no) (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
-  
+Marker file: .csv 
+Option:
+  parameter c (yes/no)  
+  parameter q (yes/no) (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
+```
 
 
 #### 3. Calculating the Maximum Likelihood Value for a Specific Tree
