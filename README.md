@@ -43,7 +43,7 @@ Run the `treesearch.py` script. This will perform a NNI search first, followed b
 - Constraint tree:
    If you do not require a constraint tree, simply press Enter.
    If you need to use a constraint tree, you can: Input buneman to use the default Buneman tree. Alternatively, input a custom Newick format tree.
-- Input file: `.csv`  
+- Marker file: `.csv`  
 - Option:
   parameter `c` (yes/no)  
   parameter `q` (yes/no) (Hint: The parameter `q` is not recommended for cases with a large number of taxa.)
@@ -57,8 +57,8 @@ If you only want to calculate the maximum likelihood value for a specific tree t
 Provide one or more trees in Newick format along with the retrotransposon marker matrix in `.csv` format as input. You can also choose whether to use parameter `c` and/or parameter `q`. The script will output the branch lengths (plus insertion rates/missing rates) and the Likelihood value for each input tree.
 
 ```
-input tree file:  .txt 
-input file: .csv  
+input tree: Newick string or filename(.txt)
+input marker file: .csv 
 option: parameter c (yes/no)  
         parameter q (yes/no)     
 output: treetopo with parameters & Likelihood value
@@ -68,7 +68,7 @@ output: treetopo with parameters & Likelihood value
 #### 4. Support values
 This method uses the aBayes approach to calculate the support values for each edge in the tree. To compute these values, run the `supportvalue.py` script, which will evaluate the support for each edge in the phylogenetic tree.
 ```
-input tree: tree topology(newick)
+input tree: Newick string or filename(.txt)
 input file: .csv
 option: parameter c (yes/no)
         parameter q (yes/no)
