@@ -1,6 +1,7 @@
 import subprocess
 import matlab.engine
 import io
+import re
 
 def find_matching_parentheses(s):
 	'''
@@ -165,8 +166,18 @@ def spr_x(s,s_subtree):
 
 	return sprtree
 
-#aa = spr_x('(((((((newdataMJLFD,newdataK),BALRE),(CHLUN,TAUER)),CUCCA),newdataH),COLLI),newdataI)','((((((newdataMJLFD,newdataK),BALRE),(CHLUN,TAUER)),CUCCA),newdataH),COLLI)')
-#print(len(aa))
+def spr(s):
+	cluster = [s[start:end+1] for start, end in find_matching_parentheses(s)[1:]]
+	taxa = s.replace('(','').replace(')','').split(',')
+	
+	subtree = cluster+taxa
+	spr = []
+	for i in subtree:
+		new_spr = spr_x(s,i)
+		spr.append(new_spr)
+
+	sprtree = [item for sublist in spr for item in sublist]
+	return sprtree
 
 
 def edge_distance(s,target_edge):
@@ -195,30 +206,50 @@ def edge_distance(s,target_edge):
 #constraint_tree = '((CAPCA,CHAPE_CALAN),(EURHE,PHALE),(MESUN,PTEGU),(((FULGL,PYGAD_APTFO),((EGRGA,NIPNI,PELCR),PHACA)),GAVST),((((NESNO_MELUN,TAEGU_MANVI_GEOFO_CORBR_ACACH),FALPE),CARCR),((CATAU,HALLE_HALAL),((BUCRH,PICPU_MERNU),APAVI,LEPDI),TYTAL),COLST),BALRE,CUCCA,CHLUN,COLLI,TAUER,OPHHO,CHAVO,PODCR_PHORU)'
 
 
-search_tree = input('Please input the initial tree: ')
-constraint = input('Please input the constraint tree: ')
-markerfile = input('Please input the marker file: ')
+user_input = input('Please input the initial tree(enter Newick tree or press enter to use default): ')
+constraint = input('Please input the constraint tree(press enter to skip, buneman for default, or enter Newick tree): ')
+markerfile = input('Please input the marker filename (CSV format):')
 usec = input("use parameter c (yes/no): ").lower()
-useq = input("use parameter c (yes/no): ").lower()
+useq = input("use parameter q (yes/no): ").lower()
 
 
-if constraint == "":
-	with open(markerfile, 'r') as csv_file:
-		csv_content = csv_file.readlines()
-		constraint_tree = '('+csv_content[0].strip()+')'
-elif constraint == "buneman":
-	threshold = input('Please input the threshold(default:0.95): ')
-	if threshold == '':
-		threshold = 0.95
-	result = subprocess.run(["python3", "bunemantree.py", markerfile, threshold], stdout=subprocess.PIPE, text=True)
-	constraint_tree = result.stdout.strip()
-else:
-	constraint_tree = constraint
+try:
+	with open(constraint, 'r') as file:
+		newick_str = file.read().strip()
+		newick_str = newick_str.replace(" ", "").replace(";", "")
+		newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
+		constraint_tree = re.sub(r'\)(\d+(\.\d+)?)', ')', newick_str)
+except FileNotFoundError:
+	if constraint == "":
+		with open(markerfile, 'r') as csv_file:
+			csv_content = csv_file.readlines()
+			constraint_tree = '('+csv_content[0].strip()+')'
+	elif constraint.lower()  == "buneman":
+		threshold = input('Please input the constraint threshold(default:0.95): ')
+		if threshold == '':
+			threshold = str(0.95)
+		result = subprocess.run(["python3", "bunemantree.py", markerfile, threshold], stdout=subprocess.PIPE, text=True)
+		constraint_tree = result.stdout.strip()
+	else:
+		newick_str = constraint.replace(" ", "").replace(";", "")
+		newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
+		constraint_tree = re.sub(r'\)(\d+(\.\d+)?)', ')', newick_str)
 
 
-if search_tree == "":
-	result = subprocess.run(["python3", "initialtree.py", markerfile,constraint_tree], stdout=subprocess.PIPE, text=True)
-	search_tree = result.stdout.strip()
+try:
+	with open(user_input, 'r') as file:
+		newick_str = file.read().strip()
+		newick_str = newick_str.replace(" ", "").replace(";", "")
+		newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
+		search_tree = re.sub(r'\)(\d+(\.\d+)?)', ')', newick_str)
+except FileNotFoundError:
+	if user_input == "":
+		result = subprocess.run(["python3", "initialtree.py", markerfile,constraint_tree], stdout=subprocess.PIPE, text=True)
+		newick_str = result.stdout.strip()
+	else:
+		newick_str = user_input.replace(" ", "").replace(";", "")
+		newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
+		search_tree = re.sub(r'\)(\d+(\.\d+)?)', ')', newick_str)
 
 
 
@@ -238,7 +269,7 @@ def check_inclusion(search_tree, con_tree):
 	constrainttree = con_tree
 	for cluster in delete:
 		constrainttree = constrainttree.replace(cluster, cluster[1:-1])
-
+		
 	return constrainttree
 
 print('The search tree is:', search_tree)
@@ -246,6 +277,8 @@ constraint_tree = check_inclusion(search_tree,constraint_tree)
 print('The constraint tree is:', constraint_tree)
 constraint_cluster = [constraint_tree[start:end+1] for start, end in find_matching_parentheses(constraint_tree)[1:]]
 
+
+print("Beginning the search...")
 
 
 #################NNI search#################
@@ -258,8 +291,10 @@ best_F_value = treescore(search_tree,markerfile,usec,useq)
 current_tree = ''
 while current_tree != best_tree:
 	current_tree = best_tree
-	# Initialize the edge index to 0
 
+	#################NNI search#################
+	print('start NNI')
+	# Initialize the edge index to 0
 	edge_num = [0]*(current_tree.count(',')-1)
 	while edge_num != ['max']*(current_tree.count(',')-1):
 		current_tree = best_tree
@@ -306,23 +341,6 @@ while current_tree != best_tree:
 	#################SPR search#################
 	print('start SPR')
 	current_tree = best_tree
-
-
-	def spr(s):
-		cluster = [s[start:end+1] for start, end in find_matching_parentheses(s)[1:]]
-		taxa = s.replace('(','').replace(')','').split(',')
-		
-		subtree = cluster+taxa
-		spr = []
-		for i in subtree:
-			new_spr = spr_x(s,i)
-			spr.append(new_spr)
-
-		sprtree = [item for sublist in spr for item in sublist]
-		return sprtree
-
-	#print(spr('((newdataH,COLLI),newdataI)'))
-		
 
 	result =[]
 	def recursive_split(s):
@@ -375,7 +393,6 @@ while current_tree != best_tree:
 		return restored_list
 
 
-
 	tree_cluster = [current_tree[start:end+1] for start, end in find_matching_parentheses(current_tree)]
 	string, node = find_corresponding_elements(tree_cluster,unresolved_node)
 	#print('aa',string,node)
@@ -393,18 +410,16 @@ while current_tree != best_tree:
 		if len(spr_tree) > 0:
 			sprtree = [current_tree.replace(string[i],spr) for spr in spr_tree]
 			result.append(sprtree)
-		#result.append(spr_tree)
 
 	flattened_result = [item for sublist in result for item in sublist]
 	#print(flattened_result)
-
 
 	for tree in flattened_result:
 		F = treescore(tree,markerfile,usec,useq)
 		if F > best_F_value:
 			best_tree = tree
-			best_F_value =F
+			best_F_value = F
 			break
 
-	print('spr_tree:',best_tree)
-	print('spr_score:',best_F_value)
+	print('SPR tree:',best_tree)
+	print('SPR score:',best_F_value)

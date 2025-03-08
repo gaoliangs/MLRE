@@ -2,6 +2,7 @@ import subprocess
 import matlab.engine
 import io
 import math
+import re
 
 
 def find_matching_parentheses(s):
@@ -110,8 +111,20 @@ def nni(s,s_cluster):
 
 
 
-treetopo = input("Please input the tree: ")
-markerfile = input("Please input the marker file: ")
+user_input = input('Please input the tree(Newick string or filename): ')
+# 检查用户输入是否是文件名，如果是，则读取文件内容
+try:
+    with open(user_input, 'r') as file:
+        newick_str = file.read().strip()
+except FileNotFoundError:
+    # 如果输入不是文件名，则直接使用用户输入的字符串
+    newick_str = user_input
+newick_str = newick_str.replace(" ", "").replace(";", "")
+newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
+treetopo = re.sub(r'\)(\d+(\.\d+)?)', ')', newick_str)
+
+
+markerfile = input("Please input the marker filename: ")
 usec = input("use parameter c (yes/no): ").lower()
 useq = input("use parameter q (yes/no): ").lower()
 
