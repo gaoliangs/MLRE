@@ -245,7 +245,7 @@ try:
 except FileNotFoundError:
 	if user_input == "":
 		result = subprocess.run(["python3", "initialtree.py", markerfile,constraint_tree], stdout=subprocess.PIPE, text=True)
-		newick_str = result.stdout.strip()
+		search_tree = result.stdout.strip()
 	else:
 		newick_str = user_input.replace(" ", "").replace(";", "")
 		newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
