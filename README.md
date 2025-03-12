@@ -29,9 +29,9 @@ During execution, the script will display the weights of all Buneman clusters. Y
 If you do not intend to use Buneman clustering, you may skip the threshold input by pressing Enter without providing a value. In this case, the Buneman clustering step will be bypassed, and no filtering based on cluster weights will occur.
 
 ```
-Input file:  .nex  
+Input file: .nex  
 Threshold: buneman weight/ Press Enter to skip clustering
-Output files: newseq1.csv, newseq2.csv, ...
+Output files: .csv
 ```
 
 
