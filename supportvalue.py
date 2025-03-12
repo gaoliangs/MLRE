@@ -3,6 +3,7 @@ import matlab.engine
 import io
 import math
 import re
+import os
 
 
 def find_matching_parentheses(s):
@@ -77,22 +78,24 @@ def treescore(treetopo,markerfile,usec,useq):
 	print('tree:',treetopo)
 	if useq =='yes':
 		subprocess.run(["python3", "newlambda_q.py", treetopo, markerfile, usec])
+		eng = matlab.engine.start_matlab()
+		stdout_capture = io.StringIO()
+		LogL,t,c,q=eng.treescore(nargout =4, stdout=stdout_capture)
+		print("LogL = ", LogL)
+		eng.exit()
 	else:
 		subprocess.run(["python3", "newlambda_cpp.py", treetopo, markerfile, usec])
+		eng = matlab.engine.start_matlab()
+		stdout_capture = io.StringIO()
+		LogL,t,c =eng.treescore(nargout =3, stdout=stdout_capture)
+		print("LogL = ", LogL)
+		eng.exit()
 
-	eng = matlab.engine.start_matlab()
-	stdout_capture = io.StringIO()
-	# 调用 MATLAB 函数并获取回传结果，同时将输出捕获到 StringIO 对象
-	logL = eng.treescore(nargout=1, stdout=stdout_capture)
-	#logL = eng.treescore(nargout =1)
-	print('logL =',logL)
-	eng.exit()
-	return logL
+	return LogL
 
 def nni(s,s_cluster):
 
 	subtree = find_minimum_parentheses(s,s_cluster)
-	s_unresolved = subtree.replace(s_cluster,s_cluster[1:-1])
 	two_clades = findsplit(s_cluster[1:-1])
 	lst = findsplit(subtree[1:-1])
 	third_clade = lst[0] if lst[0] != s_cluster else lst[1]
@@ -106,22 +109,21 @@ def nni(s,s_cluster):
 	edge_index1 = newtree1.split(new_nni1)[0].count('(')+1
 	edge_index2 = newtree2.split(new_nni2)[0].count('(')+1
 	
-	
 	return newtree1,newtree2,edge_index1,edge_index2
 
 
+def is_valid_path(path):
+    return len(path) < 255 and os.path.exists(path)
 
 user_input = input('Please input the tree(Newick string or filename): ')
-# 检查用户输入是否是文件名，如果是，则读取文件内容
-try:
+if is_valid_path(user_input):
     with open(user_input, 'r') as file:
         newick_str = file.read().strip()
-except FileNotFoundError:
-    # 如果输入不是文件名，则直接使用用户输入的字符串
+else:
     newick_str = user_input
 newick_str = newick_str.replace(" ", "").replace(";", "")
-newick_str = re.sub(r':\d+(\.\d+)?', '', newick_str)
-treetopo = re.sub(r'\)(\d+(\.\d+)?)', ')', newick_str)
+newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
+treetopo = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
 
 
 markerfile = input("Please input the marker filename: ")
