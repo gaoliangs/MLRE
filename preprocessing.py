@@ -356,7 +356,8 @@ for j in range(len(unresolved)):
 
 
     #unresolved data
-    output_name = 'newseq'+str(j+1)+'.csv'
+    output_name = input("output file name: ")
+    #output_name = output+str(j+1)+'.csv'
     with open(output_name, 'w') as output_file:
         names = []
         for gi in unresolved[j]:
