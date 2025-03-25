@@ -1,7 +1,6 @@
 import sys
 import itertools
 import math
-import subprocess
 
 
 file_name = sys.argv[1]
@@ -78,16 +77,16 @@ def findindex(u,v,w):
 
 
 def find_valid_newpair(score, a, b, taxa_in_buneman):
-    while True:
-        newpairloc = score.index(max(score))
-        newpair = a[newpairloc] + b[newpairloc]
+	while True:
+		newpairloc = score.index(max(score))
+		newpair = a[newpairloc] + b[newpairloc]
 
-        for tb in taxa_in_buneman:
-        	if (len(set(tb)&set(newpair)) >0) & (len(set(tb)&set(newpair))<len(newpair)) & (len(set(tb)&set(newpair))<len(tb)): 
-        		score[newpairloc] = -float('inf') 
-        		break
-        else:
-        	return newpairloc
+		for tb in taxa_in_buneman:
+			if (len(set(tb)&set(newpair)) >0) & (len(set(tb)&set(newpair))<len(newpair)) & (len(set(tb)&set(newpair))<len(tb)): 
+				score[newpairloc] = -float('inf') 
+				break
+		else:
+			return newpairloc
 
 
 index_map = {name: idx for idx, name in enumerate(taxaname)}
