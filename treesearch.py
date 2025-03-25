@@ -3,6 +3,9 @@ import matlab.engine
 import io
 import re
 import os
+from io import StringIO
+from Bio import Phylo
+
 
 def find_matching_parentheses(s):
 	'''
@@ -215,16 +218,23 @@ markerfile = input('Please input the marker filename (CSV format):')
 usec = input("use parameter c (yes/no): ").lower()
 useq = input("use parameter q (yes/no): ").lower()
 
-def is_valid_path(path):
-    return len(path) < 255 and os.path.exists(path)
+
+def remove_information(tree):
+    for clade in tree.find_clades():
+        clade.branch_length = None  # 去掉枝长
+        clade.comment = None     # 去掉注释
+        clade.confidence = None  # 去掉支持值
+    return tree
 
 
-if is_valid_path(constraint):
+if os.path.exists(constraint):
 	with open(constraint, 'r') as file:
 		newick_str = file.read().strip()
-		newick_str = newick_str.replace(" ", "").replace(";", "")
-		newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
-		constraint_tree = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
+		tree = Phylo.read(StringIO(newick_str), "newick")
+		topology_str = remove_information(tree).format("newick")
+		str_noedge = re.sub(r":\d+(\.\d+)?", "", topology_str)
+		constraint_tree = str_noedge.strip().replace(";", "")
+
 else:
 	if constraint == "":
 		with open(markerfile, 'r') as csv_file:
@@ -237,25 +247,28 @@ else:
 		result = subprocess.run(["python3", "bunemantree.py", markerfile, threshold], stdout=subprocess.PIPE, text=True)
 		constraint_tree = result.stdout.strip()
 	else:
-		newick_str = constraint.replace(" ", "").replace(";", "")
-		newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
-		constraint_tree = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
+		tree = Phylo.read(StringIO(constraint), "newick")
+		topology_str = remove_information(tree).format("newick")
+		str_noedge = re.sub(r":\d+(\.\d+)?", "", topology_str)
+		constraint_tree = str_noedge.strip().replace(";", "")
 print(constraint_tree)
 
-if is_valid_path(user_input):
+if os.path.exists(user_input):
 	with open(user_input, 'r') as file:
 		newick_str = file.read().strip()
-		newick_str = newick_str.replace(" ", "").replace(";", "")
-		newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
-		search_tree = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
+		tree = Phylo.read(StringIO(newick_str), "newick")
+		topology_str = remove_information(tree).format("newick")
+		str_noedge = re.sub(r":\d+(\.\d+)?", "", topology_str)
+		search_tree = str_noedge.strip().replace(";", "")
 else:
 	if user_input == "":
 		result = subprocess.run(["python3", "initialtree.py", markerfile,constraint_tree], stdout=subprocess.PIPE, text=True)
 		search_tree = result.stdout.strip()
 	else:
-		newick_str = user_input.replace(" ", "").replace(";", "")
-		newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
-		search_tree = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
+		tree = Phylo.read(StringIO(user_input), "newick")
+		topology_str = remove_information(tree).format("newick")
+		str_noedge = re.sub(r":\d+(\.\d+)?", "", topology_str)
+		search_tree = str_noedge.strip().replace(";", "")
 print(search_tree)
 
 

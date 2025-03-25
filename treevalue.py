@@ -5,26 +5,33 @@ import re
 import io
 import time
 import os
+from io import StringIO
+from Bio import Phylo
 
-def is_valid_path(path):
-    return len(path) < 255 and os.path.exists(path)
 
 user_input = input('Please input the tree(Newick string or filename): ')
 
-if is_valid_path(user_input):
-    with open(user_input, 'r') as file:
-        alltreetopo = [line.strip() for line in file]
+def remove_information(tree):
+    for clade in tree.find_clades():
+        clade.branch_length = None  # 去掉枝长
+        clade.comment = None     # 去掉注释
+        clade.confidence = None  # 去掉支持值
+    return tree
+
+
+if os.path.exists(user_input):
+	with open(user_input, 'r') as file:
+		alltreetopo = [line.strip() for line in file]
 else:
-    alltreetopo = [user_input]
-    
-alltree =[]
+	alltreetopo = [user_input]
+
+alltree = []
 for newick_str in alltreetopo:
-    newick_str = newick_str.replace(" ", "").replace(";", "")
-    # remove edge length
-    newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
-    # remove bootstrap
-    newick_str = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
-    alltree.append(newick_str)
+	tree = Phylo.read(StringIO(newick_str), "newick")
+	topology_str = remove_information(tree).format("newick")
+	str_noedge = re.sub(r":\d+(\.\d+)?", "", topology_str)
+	alltree.append(str_noedge.strip().replace(";", ""))
+
 
 markerfile = input("Please input the marker filename: ")
 usec = input("use parameter c (yes/no): ").lower()

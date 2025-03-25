@@ -4,6 +4,8 @@ import io
 import math
 import re
 import os
+from io import StringIO
+from Bio import Phylo
 
 
 def find_matching_parentheses(s):
@@ -112,20 +114,27 @@ def nni(s,s_cluster):
 	return newtree1,newtree2,edge_index1,edge_index2
 
 
-def is_valid_path(path):
-    return len(path) < 255 and os.path.exists(path)
-
 user_input = input('Please input the tree(Newick string or filename): ')
-if is_valid_path(user_input):
-    with open(user_input, 'r') as file:
-        newick_str = file.read().strip()
+
+def remove_information(tree):
+    for clade in tree.find_clades():
+        clade.branch_length = None
+        clade.comment = None
+        clade.confidence = None
+    return tree
+
+if os.path.exists(user_input):
+	with open(user_input, 'r') as file:
+		newick_str = file.read().strip()
+		tree = Phylo.read(StringIO(newick_str), "newick")
 else:
-    newick_str = user_input
-newick_str = newick_str.replace(" ", "").replace(";", "")
-newick_str = re.sub(r':\d+(\.\d+)?([eE][+-]?\d+)?', '', newick_str)
-treetopo = re.sub(r'\)(\d+(\.\d+)?([eE][+-]?\d+)?)', ')', newick_str)
+	tree = Phylo.read(StringIO(user_input), "newick")
 
+topology_str = remove_information(tree).format("newick")
+str_noedge = re.sub(r":\d+(\.\d+)?", "", topology_str)
+treetopo = str_noedge.strip().replace(";", "")
 
+print(treetopo)
 markerfile = input("Please input the marker filename: ")
 usec = input("use parameter c (yes/no): ").lower()
 useq = input("use parameter q (yes/no): ").lower()
