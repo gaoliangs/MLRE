@@ -78,5 +78,15 @@ option: parameter c (yes/no)
 output: support value list
 ```
 
+#### 5. Forward Simulation
+The Forward Simulation tool allows users to simulate markers based on phylogenetic trees in Newick format. 
+```
+input samples number: the number of replications
+input markers number: the number of markers per replication
+input tree: Newick string or filename
+optional input marker file: CSV file for replicating missing data pattern (?)
+output: Simulated markers in CSV format
+```
+
 
 
