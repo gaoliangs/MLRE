@@ -80,6 +80,7 @@ output: support value list
 
 #### 5. Forward Simulation
 The Forward Simulation tool allows users to simulate markers based on phylogenetic trees in Newick format. 
+To run the simulation, execute the `forward_simulation.py` script with the following parameters:
 ```
 input samples number: the number of replications
 input markers number: the number of markers per replication
