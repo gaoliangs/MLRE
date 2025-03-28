@@ -37,7 +37,7 @@ leaf_length = [clade.branch_length for clade in tree.get_terminals()]
 print("leaf_edge: ",leaf_length)
 
 c = [clade.comment for clade in tree.get_nonterminals()]
-c = [1.0 if x is None else x for x in c]
+c = [1.0 if x is None else float(x) for x in c]
 print("insertion_rate: ",c)
 
 
