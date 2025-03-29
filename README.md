@@ -85,7 +85,7 @@ To run the simulation, execute the `forward_simulation.py` script with the follo
 input samples number: the number of replications
 input markers number: the number of markers per replication
 input tree: Newick string or filename
-optional input marker file: CSV file for replicating missing data pattern (?)
+optional input marker file: CSV file for replicating missing data pattern (?).  If you do not need to simulate missing data, press Enter to skip.
 output: Simulated markers in CSV format
 ```
 
