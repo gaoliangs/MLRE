@@ -47,7 +47,8 @@ treetopo = str_noedge.strip().replace(";", "")
 taxa_list = treetopo.replace('(','').replace(')','').split(',')
 print("taxa: ",taxa_list)
 
-mapping = dict(zip(taxa_list,leaf_length ))
+mapping = dict(zip(taxa_list,leaf_length))
+print(mapping)
 
 def find_matching_parentheses(s):
 	stack = []
@@ -108,6 +109,7 @@ def generate_marker(clu,tvalue):
 	left_node = random.choices(range(len(left_p)), weights=left_p, k=1)[0]
 	right_node = random.choices(range(len(right_p)), weights=right_p, k=1)[0]
 
+
 	if left_node == 0:
 		left_marker = [0]*(left.count('(')+1)
 	if left_node == 2:
@@ -116,14 +118,16 @@ def generate_marker(clu,tvalue):
 		right_marker = [0]*(right.count('(')+1)
 	if right_node == 2:
 		right_marker = [1]*(right.count('(')+1)
-	if (left_node == 1) & ('(' in left):
-		left_marker = generate_marker(left,tvalue[1:left.count('(')+1])
-	elif (left_node == 1) & (mapping[left] is not None):
-		left_marker = ["01"]*(left.count('(')+1)
-	if (right_node == 1) & ('(' in right):
-		right_marker = generate_marker(right,tvalue[left.count('(')+1:])
-	elif (right_node == 1) & (mapping[right] is not None):
-		right_marker = ["01"]*(right.count('(')+1)
+	if left_node == 1:
+		if '(' in left:
+			left_marker = generate_marker(left,tvalue[1:left.count('(')+1])
+		elif mapping[left] is not None:
+			left_marker = ["01"]*(left.count('(')+1)
+	if right_node == 1:
+		if '(' in right:
+			right_marker = generate_marker(right,tvalue[left.count('(')+1:])
+		elif mapping[right] is not None:
+			right_marker = ["01"]*(right.count('(')+1)
 
 
 	marker = left_marker+right_marker
