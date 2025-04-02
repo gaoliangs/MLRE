@@ -167,7 +167,11 @@ def spr_x(s,s_subtree):
 		subtree.remove(parent_neighbor)
 
 	for i in subtree:
-		new_spr = pruned_tree.replace(i,'('+i+','+s_subtree+')')
+		if "(" not in i:
+			pattern = rf'\b{i}\b'  
+		else:
+			pattern = re.escape(i)
+		new_spr = re.sub(pattern, f"({i},{s_subtree})", pruned_tree)
 		sprtree.append(new_spr)
 
 	return sprtree
