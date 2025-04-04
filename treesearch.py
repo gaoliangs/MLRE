@@ -67,12 +67,14 @@ def find_minimum_parentheses(s, target):
 		elif char == ')':
 			# 遇到右括号，结束一个层次
 			start = stack.pop()
-			# 如果这个括号是我们关注的括号，判断X是否在其中
-			if min_paren is None and target in s[start + 1:i]:
+			content_taxa = s[start + 1:i].replace("(","").replace(')',"").split(",")
+			target_taxa = target.replace("(","").replace(')',"").split(",")
+			if (min_paren is None) and (set(target_taxa) < set(content_taxa)):
 				min_paren = (start, i)
 				start_idx = start + 1
 		
 	return s[min_paren[0]:min_paren[1] + 1] if min_paren else None
+
 
 
 def find_target_bracket(s, target_cluster):
