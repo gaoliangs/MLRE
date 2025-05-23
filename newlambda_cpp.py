@@ -4,9 +4,12 @@ import sys
 
 
 topo = sys.argv[1]
+
+#topo = "(((((BALRE,(CHAVO,((OPHHO,CAPCA),GAVST))),TAUER),CARCR),newdataH),COLLI)"
 taxaorder = topo.replace("(", "").replace(")", "").split(',')
 
 file_name = sys.argv[2]
+#file_name = "marker9.csv"
 with open(file_name, 'r') as csv_file:
     csv_content = csv_file.readlines()
 taxaname = csv_content[0].strip().split(',')
@@ -204,9 +207,17 @@ def matrix_vector(matrix_A, vector_B):
 
 
 
+cache = {}
 
 
 def recursive_split(s,edge_num,leaf_index):
+
+	key = (s, tuple(edge_num), tuple(leaf_index))
+
+	if key in cache:
+		#print(cache)#
+		return cache[key]
+
 	if '(' in s:
 		parts = findsplit(s,edge_num,leaf_index)
 		result = []
@@ -223,6 +234,8 @@ def recursive_split(s,edge_num,leaf_index):
 				result.append(matrix_vector(current_matrix,v))
 
 		vectors = combine(result)
+		cache[key] = vectors
+
 		return vectors
 	else:
 		if leaf_index[0] in smloc:
@@ -237,6 +250,7 @@ def recursive_split(s,edge_num,leaf_index):
 			return matrix_vector(current_matrix,[["0"],["0"],["0"],["1"]])
 		if s == '?':
 			return [["1"],["1"],["1"],["1"]]
+		
 
 #print(recursive_split('(((0,0),0),(0,0))',[0,1,2,3],[1,2,3,4,5]))
 
@@ -318,7 +332,7 @@ file.close()
 
 
 
-#user_choice = 'yes'
+#user_choice = 'no'
 user_choice = sys.argv[3]
 if user_choice == 'yes':
 
