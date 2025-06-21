@@ -15,7 +15,7 @@ This project introduces an advanced algorithm for constructing phylogenetic tree
 ### Dependencies
 - **Python**: Required for running the core scripts and integrating with Matlab.
 - **Matlab**: Matlab is used via the **Matlab engine** for Python. Please refer to the official [Matlab documentation](https://www.mathworks.com/help/matlab/matlab-engine-for-python.html) for installation instructions.
-- The project also utilizes Matlab MEX files for computational efficiency. Please ensure a compatible C++ compiler is installed
+- The project also utilizes MATLAB MEX files for computational efficiency. Please ensure a compatible C++ compiler is installed, and be mindful of version compatibility. All tests were conducted using MATLAB 2023b and Xcode 16.2.
 
 ### Algorithm Workflow
 
