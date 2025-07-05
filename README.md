@@ -24,7 +24,7 @@ This project introduces an advanced algorithm for constructing phylogenetic tree
 
 The input data for the algorithm is in `.nex` format. To preprocess the data, run the `preprocessing.py` script. This will generate a `.csv` file containing a presence/absence matrix for retrotransposon markers (i.e., a 0-1 matrix).
 
-During execution, the script will display the weights of all Buneman clusters. You may choose to apply a threshold based on these weights to filter the clusters. Clusters with weights exceeding the threshold will be retained, resulting in a partially unresolved tree. For internal nodes with a degree greater than 3, a separate CSV file will be generated for each node to facilitate further analysis.
+During execution, the script will display the p-values of all Buneman clusters. You may choose to apply a threshold based on the p-values to filter the clusters. Clusters with weights exceeding the threshold will be retained, resulting in a partially unresolved tree. For internal nodes with a degree greater than 3, a separate CSV file will be generated for each node to facilitate further analysis.
 
 If you do not intend to use Buneman clustering, you may skip the threshold input by pressing Enter without providing a value. In this case, the Buneman clustering step will be bypassed, and no filtering based on cluster weights will occur.
 
