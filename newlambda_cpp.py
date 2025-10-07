@@ -91,7 +91,7 @@ variables_tl = [f"tl{i}" for i in range(1, n_leaf + 1)]
 
 # 叶节点的矩阵
 matrix_leaf_group = [
-    ["0", "0", "0", "0"],
+    ["1", "0", "0", "0"],
     ["0", "1", "0", "0"],  
     ["0", "0", "1", "0"],
     ["0", "(1-tl0)*0.5", "(1-tl0)*0.5", "tl0"]
@@ -108,7 +108,7 @@ matrix_internal = [
 
 
 matrix_leaf = [
-    ["0", "0", "0", "0"],
+    ["1", "0", "0", "0"],
     ["0", "1", "0", "0"],
     ["0", "0", "1", "0"],
     ["0", "0.5", "0.5", "1"]
@@ -243,13 +243,13 @@ def recursive_split(s,edge_num,leaf_index):
 		else:
 			current_matrix = [[elem.replace("tl0", f"tl{leaf_index[0]}") for elem in row]for row in matrix_leaf_group]
 		if s == '0':
-			return matrix_vector(current_matrix,[["1"],["1"],["0"],["0"]])
+			return matrix_vector(current_matrix,[["0"],["1"],["0"],["0"]])
 		if s == '1':
 			return matrix_vector(current_matrix,[["0"],["0"],["1"],["0"]])
 		if s == '01':
 			return matrix_vector(current_matrix,[["0"],["0"],["0"],["1"]])
 		if s == '?':
-			return [["1"],["1"],["1"],["1"]]
+			return [["0"],["1"],["1"],["1"]]
 		
 
 #print(recursive_split('(((0,0),0),(0,0))',[0,1,2,3],[1,2,3,4,5]))
